@@ -1,0 +1,9 @@
+26/05/2013 - 1.0.0-beta
+  1. Move AutoItDLL.dll from lib directory to src/cn/com/jautoitdll/lib directory.
+
+04/05/2013 - 1.0.0-alpha2
+  1. Add AutoItDLL.Keys interface.
+  2. Move AutoItDLL.dll from native directory to lib directory.
+  
+30/04/2013 - 1.0.0-alpha
+  First version.
