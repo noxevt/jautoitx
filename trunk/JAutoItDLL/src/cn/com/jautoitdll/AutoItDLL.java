@@ -1,5 +1,6 @@
 package cn.com.jautoitdll;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -11,6 +12,9 @@ import org.apache.log4j.PropertyConfigurator;
 
 import com.sun.jna.Library;
 import com.sun.jna.Native;
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef.HWND;
+import com.sun.jna.platform.win32.WinDef.RECT;
 
 /**
  * AutoIt is a simple tool that can simulate key presses, mouse movements and
@@ -40,13 +44,13 @@ public final class AutoItDLL {
 	public static String LOG4J_CONF_PATH = "conf/log4j.properties";
 
 	/* Buffer size used in clipGet method */
-	public static int CLIP_GET_BUF_SIZE = 16385;
+	public static final int CLIP_GET_BUF_SIZE = 16385;
 
 	/* Buffer size used in iniRead method */
-	public static int INI_READ_BUF_SIZE = 10240;
+	public static final int INI_READ_BUF_SIZE = 16385;
 
 	/* Buffer size used in winGetActiveTitle method */
-	public static int WIN_GET_ACTIVE_TITLE_BUF_SIZE = 16385;
+	public static final int WIN_GET_ACTIVE_TITLE_BUF_SIZE = 16385;
 
 	/*
 	 * The default value for detectHiddenText method
@@ -65,39 +69,45 @@ public final class AutoItDLL {
 	public static final boolean DEFAULT_STORE_CAPSLOCK_MODE = true;
 
 	/*
-	 * Default window text, if you don't wish to specify window text, you must
-	 * use a blank string instead, i.e. ""
-	 */
-	public static final String DEFAULT_WIN_TEXT = "";
-
-	/*
 	 * The default amount of time in milliseconds that AutoIt pauses after
 	 * performing a WinWait-type function
 	 */
 	public static final int DEFAULT_WIN_DELAY = 500;
 
+	/* The default way the coords are used in the mouse functions */
+	public static final CoordMode DEFAULT_MOUSE_COORD_MODE = CoordMode.ABSOLUTE_SCREEN_COORDINATES;
+
 	/*
-	 * The return value when the specified window is exists/active/close/not
-	 * active.
+	 * The return value if the the timeout waiting period was not exceeded in
+	 * winWait/winWaitActive/winWaitClose/winWaitNotActive methods.
 	 */
-	public static final int SUCCESS_WIN_WAIT = 0;
+	private static final int SUCCESS_WIN_WAIT = 0;
+
+	/* The return value used for AutoItDLLLibrary interface when success */
+	private static final int SUCCESS_RETURN_VALUE = 1;
+
+	/* AutoItDLL library name */
+	private static final String DLL_LIB_NAME = "AutoItDLL";
+
+	/* AutoItDLL library path */
+	private static final String DLL_LIB_RESOURCE_PATH = "/cn/com/jautoitdll/lib/";
 
 	private static final Logger logger = Logger.getLogger(AutoItDLL.class);
 	private static AutoItDLLLibrary autoItDLL;
 
-	/* AutoItDLLLibrary中方法成功时的返回值 */
-	private static final int SUCCESS_RETURN_VALUE = 1;
+	/* The way the coords are used in the mouse functions */
+	private static CoordMode mouseCoordMode = DEFAULT_MOUSE_COORD_MODE;
 
 	static {
-		// 初始化AutoItDLL
+		// Initialize AutoItDLL
 		initAutoItDLL();
 	}
 
 	/**
-	 * 初始化AutoItDLL。
+	 * Initialize AutoItDLL.
 	 */
 	private static void initAutoItDLL() {
-		// 初始化log4j
+		// Initialize log4j
 		try {
 			final File file = new File(LOG4J_CONF_PATH);
 			if (file.exists() && file.canRead()) {
@@ -108,7 +118,7 @@ public final class AutoItDLL {
 			logger.error("Unable to initialize log4j.", e);
 		}
 
-		// 初始化AutoItDLL
+		// Initialize AutoItDLL
 		try {
 			loadNativeLibrary();
 
@@ -126,13 +136,9 @@ public final class AutoItDLL {
 	 * Unpacking and loading the library into the Java Virtual Machine.
 	 */
 	private static void loadNativeLibrary() {
-		String libName = "AutoItDLL";
-
 		try {
-			String libResourcePath = "/cn/com/jautoitdll/lib/";
-
 			// Get what the system "thinks" the library name should be.
-			String libNativeName = System.mapLibraryName(libName);
+			String libNativeName = System.mapLibraryName(DLL_LIB_NAME);
 
 			// Slice up the library name.
 			int i = libNativeName.lastIndexOf('.');
@@ -142,28 +148,27 @@ public final class AutoItDLL {
 			// Create the temp file for this instance of the library.
 			File libFile = File
 					.createTempFile(libNativePrefix, libNativeSuffix);
-
-			// Check and see if a copy of the native lib already exists.
-			OutputStream libOutputStream = new FileOutputStream(libFile);
-			byte[] buffer = new byte[4 * 1024];
+			libFile.deleteOnExit();
 
 			// This may return null in some circumstances.
 			InputStream libInputStream = AutoItDLL.class
-					.getResourceAsStream(libResourcePath.toLowerCase()
+					.getResourceAsStream(DLL_LIB_RESOURCE_PATH.toLowerCase()
 							+ libNativeName);
-
 			if (libInputStream == null) {
 				throw new IOException("Unable to locate the native library.");
 			}
 
+			// Copy AutoItDll.dll library to the temp file.
+			OutputStream libOutputStream = new FileOutputStream(libFile);
+			byte[] buffer = new byte[4 * 1024];
 			int size;
 			while ((size = libInputStream.read(buffer)) != -1) {
 				libOutputStream.write(buffer, 0, size);
 			}
-			libOutputStream.close();
-			libInputStream.close();
 
-			libFile.deleteOnExit();
+			// Close output and input stream
+			closeStream(libOutputStream);
+			closeStream(libInputStream);
 
 			System.load(libFile.getPath());
 
@@ -258,19 +263,6 @@ public final class AutoItDLL {
 	}
 
 	/**
-	 * Closes down AutoIt. This function is called automatically when the DLL is
-	 * unloaded.
-	 * 
-	 * Remarks: This is called internally when the DLL unloads.
-	 * 
-	 * If you are using the static library version of AutoIt, call this function
-	 * when you have finished using AutoIt functions.
-	 */
-	public static void close() {
-		autoItDLL.AUTOIT_Close();
-	}
-
-	/**
 	 * Some programs use hidden text on windows this can cause problems when
 	 * trying to script them. This command allows you to tell AutoIt whether or
 	 * not to detect this hidden text.
@@ -296,7 +288,7 @@ public final class AutoItDLL {
 	 * @see #ifWinExist(String, String)
 	 */
 	public static boolean ifWinActive(final String title) {
-		return ifWinActive(title, DEFAULT_WIN_TEXT);
+		return ifWinActive(title, null);
 	}
 
 	/**
@@ -311,8 +303,7 @@ public final class AutoItDLL {
 	 * @see #ifWinExist(String, String)
 	 */
 	public static boolean ifWinActive(final String title, final String text) {
-		final int value = autoItDLL.AUTOIT_IfWinActive(title, text);
-		return value == SUCCESS_RETURN_VALUE;
+		return autoItDLL.AUTOIT_IfWinActive(title, defaultString(text)) == SUCCESS_RETURN_VALUE;
 	}
 
 	/**
@@ -325,7 +316,7 @@ public final class AutoItDLL {
 	 * @see #ifWinActive(String, String)
 	 */
 	public static boolean ifWinExist(final String title) {
-		return ifWinExist(title, DEFAULT_WIN_TEXT);
+		return ifWinExist(title, null);
 	}
 
 	/**
@@ -340,8 +331,7 @@ public final class AutoItDLL {
 	 * @see #ifWinActive(String, String)
 	 */
 	public static boolean ifWinExist(final String title, final String text) {
-		final int value = autoItDLL.AUTOIT_IfWinExist(title, text);
-		return value == SUCCESS_RETURN_VALUE;
+		return autoItDLL.AUTOIT_IfWinExist(title, defaultString(text)) == SUCCESS_RETURN_VALUE;
 	}
 
 	/**
@@ -395,55 +385,9 @@ public final class AutoItDLL {
 	 */
 	public static String iniRead(final String file, final String section,
 			final String value) {
-		return iniRead(file, section, value, INI_READ_BUF_SIZE);
-	}
-
-	/**
-	 * Reads a specified value from a standard .INI file.
-	 * 
-	 * Remarks: An INI file is taken to be a file of the following format:
-	 * [SectionName]
-	 * 
-	 * Value=Result
-	 * 
-	 * The full path of the INI file must be given, however, it is acceptable to
-	 * use something similar to ".\myfile.ini" to indicate a file in the current
-	 * working directory.
-	 * 
-	 * @param file
-	 *            A string pointer to the filename of the .INI file.
-	 * @param section
-	 *            A string pointer to the required section of the .INI file.
-	 * @param value
-	 *            A string pointer to the value to read.
-	 * @param bufSize
-	 *            If bufSize less than or equals to 0, the default buffer size
-	 *            <code>INI_READ_BUF_SIZE</code> for iniRead will be used.
-	 * @return Returns the value read from from the .INI file.
-	 * @see #iniDelete(String, String, String)
-	 * @see #iniWrite(String, String, String, String)
-	 */
-	public static String iniRead(final String file, final String section,
-			final String value, final int bufSize) {
-		final byte[] result = new byte[(bufSize > 0) ? bufSize
-				: INI_READ_BUF_SIZE];
+		final byte[] result = new byte[INI_READ_BUF_SIZE];
 		autoItDLL.AUTOIT_IniRead(file, section, value, result);
 		return Native.toString(result);
-	}
-
-	/**
-	 * Resets AutoIt to defaults (window delays, key delays, etc.). This
-	 * function is called automatically when the DLL is loaded.
-	 * 
-	 * Remarks: This is called internally when the DLL loads.
-	 * 
-	 * If you are using the static library version of AutoIt, call this function
-	 * before using any AutoIt functions -- ideally call it as soon as your
-	 * program starts (and has input focus) for best results (helps the
-	 * AUTOIT_WinActivate command).
-	 */
-	public static void init() {
-		autoItDLL.AUTOIT_Init();
 	}
 
 	/**
@@ -492,7 +436,8 @@ public final class AutoItDLL {
 	 * @see #rightClickDrag(int, int, int, int)
 	 */
 	public static void leftClick(final int x, final int y) {
-		autoItDLL.AUTOIT_LeftClick(x, y);
+		autoItDLL.AUTOIT_LeftClick(convertMouseCoordXToRelative(x),
+				convertMouseCoordYToRelative(y));
 	}
 
 	/**
@@ -517,7 +462,10 @@ public final class AutoItDLL {
 	 */
 	public static void leftClickDrag(final int x1, final int y1, final int x2,
 			final int y2) {
-		autoItDLL.AUTOIT_LeftClickDrag(x1, y1, x2, y2);
+		autoItDLL.AUTOIT_LeftClickDrag(convertMouseCoordXToRelative(x1),
+				convertMouseCoordYToRelative(y1),
+				convertMouseCoordXToRelative(x2),
+				convertMouseCoordYToRelative(y2));
 	}
 
 	/**
@@ -532,7 +480,7 @@ public final class AutoItDLL {
 	 * @see #mouseGetPosY()
 	 */
 	public static int mouseGetPosX() {
-		return autoItDLL.AUTOIT_MouseGetPosX();
+		return convertMouseCoordXToAbsolute(autoItDLL.AUTOIT_MouseGetPosX());
 	}
 
 	/**
@@ -547,7 +495,7 @@ public final class AutoItDLL {
 	 * @see #mouseGetPosX()
 	 */
 	public static int mouseGetPosY() {
-		return autoItDLL.AUTOIT_MouseGetPosY();
+		return convertMouseCoordYToAbsolute(autoItDLL.AUTOIT_MouseGetPosY());
 	}
 
 	/**
@@ -565,7 +513,8 @@ public final class AutoItDLL {
 	 * @see #mouseGetPosY()
 	 */
 	public static void mouseMove(final int x, final int y) {
-		autoItDLL.AUTOIT_MouseMove(x, y);
+		autoItDLL.AUTOIT_MouseMove(convertMouseCoordXToRelative(x),
+				convertMouseCoordYToRelative(y));
 	}
 
 	/**
@@ -585,7 +534,8 @@ public final class AutoItDLL {
 	 * @see #rightClickDrag(int, int, int, int)
 	 */
 	public static void rightClick(final int x, final int y) {
-		autoItDLL.AUTOIT_RightClick(x, y);
+		autoItDLL.AUTOIT_RightClick(convertMouseCoordXToRelative(x),
+				convertMouseCoordYToRelative(y));
 	}
 
 	/**
@@ -609,7 +559,10 @@ public final class AutoItDLL {
 	 */
 	public static void rightClickDrag(final int x1, final int y1, final int x2,
 			final int y2) {
-		autoItDLL.AUTOIT_RightClickDrag(x1, y1, x2, y2);
+		autoItDLL.AUTOIT_RightClickDrag(convertMouseCoordXToRelative(x1),
+				convertMouseCoordYToRelative(y1),
+				convertMouseCoordXToRelative(x2),
+				convertMouseCoordYToRelative(y2));
 	}
 
 	/**
@@ -919,6 +872,21 @@ public final class AutoItDLL {
 	}
 
 	/**
+	 * Sets the way coords are used in the mouse functions.
+	 * 
+	 * @param mouseCoordMode
+	 *            The way coords are used in the mouse functions, default is
+	 *            absolute screen coordinates.
+	 */
+	public static void setMouseCoordMode(final CoordMode mouseCoordMode) {
+		if (mouseCoordMode == null) {
+			throw new IllegalArgumentException(
+					"mouseCoordMode can not be null.");
+		}
+		AutoItDLL.mouseCoordMode = mouseCoordMode;
+	}
+
+	/**
 	 * By default, at the start of a "Send" command AutoIt will store the state
 	 * of the CAPSLOCK key; at the end of the "Send" command this status will be
 	 * restored. Use this command to turn off this behaviour.
@@ -1018,7 +986,7 @@ public final class AutoItDLL {
 	 * @see #winShow(String, String)
 	 */
 	public static void winActivate(final String title) {
-		winActivate(title, DEFAULT_WIN_TEXT);
+		winActivate(title, null);
 	}
 
 	/**
@@ -1039,7 +1007,7 @@ public final class AutoItDLL {
 	 * @see #winShow(String, String)
 	 */
 	public static void winActivate(final String title, final String text) {
-		autoItDLL.AUTOIT_WinActivate(title, text);
+		autoItDLL.AUTOIT_WinActivate(title, defaultString(text));
 	}
 
 	/**
@@ -1058,7 +1026,7 @@ public final class AutoItDLL {
 	 * @see #winShow(String, String)
 	 */
 	public static void winClose(final String title) {
-		winClose(title, DEFAULT_WIN_TEXT);
+		winClose(title, null);
 	}
 
 	/**
@@ -1079,7 +1047,7 @@ public final class AutoItDLL {
 	 * @see #winShow(String, String)
 	 */
 	public static void winClose(final String title, final String text) {
-		autoItDLL.AUTOIT_WinClose(title, text);
+		autoItDLL.AUTOIT_WinClose(title, defaultString(text));
 	}
 
 	/**
@@ -1113,7 +1081,7 @@ public final class AutoItDLL {
 	 * @see #winShow(String, String)
 	 */
 	public static void winHide(final String title) {
-		winHide(title, DEFAULT_WIN_TEXT);
+		winHide(title, null);
 	}
 
 	/**
@@ -1134,7 +1102,7 @@ public final class AutoItDLL {
 	 * @see #winShow(String, String)
 	 */
 	public static void winHide(final String title, final String text) {
-		autoItDLL.AUTOIT_WinHide(title, text);
+		autoItDLL.AUTOIT_WinHide(title, defaultString(text));
 	}
 
 	/**
@@ -1153,7 +1121,7 @@ public final class AutoItDLL {
 	 * @see #winShow(String, String)
 	 */
 	public static void winKill(final String title) {
-		winKill(title, DEFAULT_WIN_TEXT);
+		winKill(title, null);
 	}
 
 	/**
@@ -1174,7 +1142,7 @@ public final class AutoItDLL {
 	 * @see #winShow(String, String)
 	 */
 	public static void winKill(final String title, final String text) {
-		autoItDLL.AUTOIT_WinKill(title, text);
+		autoItDLL.AUTOIT_WinKill(title, defaultString(text));
 	}
 
 	/**
@@ -1193,7 +1161,7 @@ public final class AutoItDLL {
 	 * @see #winShow(String, String)
 	 */
 	public static void winMaximize(final String title) {
-		winMaximize(title, DEFAULT_WIN_TEXT);
+		winMaximize(title, null);
 	}
 
 	/**
@@ -1214,7 +1182,7 @@ public final class AutoItDLL {
 	 * @see #winShow(String, String)
 	 */
 	public static void winMaximize(final String title, final String text) {
-		autoItDLL.AUTOIT_WinMaximize(title, text);
+		autoItDLL.AUTOIT_WinMaximize(title, defaultString(text));
 	}
 
 	/**
@@ -1233,7 +1201,7 @@ public final class AutoItDLL {
 	 * @see #winShow(String, String)
 	 */
 	public static void winMinimize(final String title) {
-		winMinimize(title, DEFAULT_WIN_TEXT);
+		winMinimize(title, null);
 	}
 
 	/**
@@ -1254,7 +1222,7 @@ public final class AutoItDLL {
 	 * @see #winShow(String, String)
 	 */
 	public static void winMinimize(final String title, final String text) {
-		autoItDLL.AUTOIT_WinMinimize(title, text);
+		autoItDLL.AUTOIT_WinMinimize(title, defaultString(text));
 	}
 
 	/**
@@ -1302,7 +1270,7 @@ public final class AutoItDLL {
 	 *            Y1 coordinate (to coordinate)
 	 */
 	public static void winMove(final String title, final int x, final int y) {
-		winMove(title, DEFAULT_WIN_TEXT, x, y, -1, -1);
+		winMove(title, null, x, y, -1, -1);
 	}
 
 	/**
@@ -1321,7 +1289,7 @@ public final class AutoItDLL {
 	 */
 	public static void winMove(final String title, final int x, final int y,
 			final int width, final int height) {
-		winMove(title, DEFAULT_WIN_TEXT, x, y, width, height);
+		winMove(title, null, x, y, width, height);
 	}
 
 	/**
@@ -1338,7 +1306,7 @@ public final class AutoItDLL {
 	 */
 	public static void winMove(final String title, final String text,
 			final int x, final int y) {
-		winMove(title, text, x, y, -1, -1);
+		winMove(title, defaultString(text), x, y, -1, -1);
 	}
 
 	/**
@@ -1359,7 +1327,8 @@ public final class AutoItDLL {
 	 */
 	public static void winMove(final String title, final String text,
 			final int x, final int y, final int width, final int height) {
-		autoItDLL.AUTOIT_WinMove(title, text, x, y, width, height);
+		autoItDLL.AUTOIT_WinMove(title, defaultString(text), x, y, width,
+				height);
 	}
 
 	/**
@@ -1378,7 +1347,7 @@ public final class AutoItDLL {
 	 * @see #winShow(String, String)
 	 */
 	public static void winRestore(final String title) {
-		winRestore(title, DEFAULT_WIN_TEXT);
+		winRestore(title, null);
 	}
 
 	/**
@@ -1399,7 +1368,7 @@ public final class AutoItDLL {
 	 * @see #winShow(String, String)
 	 */
 	public static void winRestore(final String title, final String text) {
-		autoItDLL.AUTOIT_WinRestore(title, text);
+		autoItDLL.AUTOIT_WinRestore(title, defaultString(text));
 	}
 
 	/**
@@ -1412,7 +1381,7 @@ public final class AutoItDLL {
 	 * @see #winGetActiveTitle()
 	 */
 	public static void winSetTitle(final String title, final String newTitle) {
-		winSetTitle(title, DEFAULT_WIN_TEXT, newTitle);
+		winSetTitle(title, null, newTitle);
 	}
 
 	/**
@@ -1428,7 +1397,7 @@ public final class AutoItDLL {
 	 */
 	public static void winSetTitle(final String title, final String text,
 			final String newTitle) {
-		autoItDLL.AUTOIT_WinSetTitle(title, text, newTitle);
+		autoItDLL.AUTOIT_WinSetTitle(title, defaultString(text), newTitle);
 	}
 
 	/**
@@ -1447,7 +1416,7 @@ public final class AutoItDLL {
 	 * @see #winRestore(String, String)
 	 */
 	public static void winShow(final String title) {
-		winShow(title, DEFAULT_WIN_TEXT);
+		winShow(title, null);
 	}
 
 	/**
@@ -1468,7 +1437,7 @@ public final class AutoItDLL {
 	 * @see #winRestore(String, String)
 	 */
 	public static void winShow(final String title, final String text) {
-		autoItDLL.AUTOIT_WinShow(title, text);
+		autoItDLL.AUTOIT_WinShow(title, defaultString(text));
 	}
 
 	/**
@@ -1484,7 +1453,7 @@ public final class AutoItDLL {
 	 * @see #winWaitNotActive(String, String, int)
 	 */
 	public static boolean winWait(final String title) {
-		return winWait(title, DEFAULT_WIN_TEXT);
+		return winWait(title, null);
 	}
 
 	/**
@@ -1503,7 +1472,7 @@ public final class AutoItDLL {
 	 * @see #winWaitNotActive(String, String, int)
 	 */
 	public static boolean winWait(final String title, final int timeout) {
-		return winWait(title, DEFAULT_WIN_TEXT, timeout);
+		return winWait(title, null, timeout);
 	}
 
 	/**
@@ -1521,7 +1490,7 @@ public final class AutoItDLL {
 	 * @see #winWaitNotActive(String, String, int)
 	 */
 	public static boolean winWait(final String title, final String text) {
-		return winWait(title, text, 0);
+		return winWait(title, defaultString(text), 0);
 	}
 
 	/**
@@ -1543,8 +1512,7 @@ public final class AutoItDLL {
 	 */
 	public static boolean winWait(final String title, final String text,
 			final int timeout) {
-		final int value = autoItDLL.AUTOIT_WinWait(title, text, timeout);
-		return value == SUCCESS_WIN_WAIT;
+		return autoItDLL.AUTOIT_WinWait(title, defaultString(text), timeout) == SUCCESS_WIN_WAIT;
 	}
 
 	/**
@@ -1560,7 +1528,7 @@ public final class AutoItDLL {
 	 * @see #winWaitNotActive(String, String, int)
 	 */
 	public static boolean winWaitActive(final String title) {
-		return winWaitActive(title, DEFAULT_WIN_TEXT);
+		return winWaitActive(title, null);
 	}
 
 	/**
@@ -1579,7 +1547,7 @@ public final class AutoItDLL {
 	 * @see #winWaitNotActive(String, String, int)
 	 */
 	public static boolean winWaitActive(final String title, final int timeout) {
-		return winWaitActive(title, DEFAULT_WIN_TEXT, timeout);
+		return winWaitActive(title, null, timeout);
 	}
 
 	/**
@@ -1597,7 +1565,7 @@ public final class AutoItDLL {
 	 * @see #winWaitNotActive(String, String, int)
 	 */
 	public static boolean winWaitActive(final String title, final String text) {
-		return winWaitActive(title, text, 0);
+		return winWaitActive(title, defaultString(text), 0);
 	}
 
 	/**
@@ -1619,8 +1587,8 @@ public final class AutoItDLL {
 	 */
 	public static boolean winWaitActive(final String title, final String text,
 			final int timeout) {
-		final int value = autoItDLL.AUTOIT_WinWaitActive(title, text, timeout);
-		return value == SUCCESS_WIN_WAIT;
+		return autoItDLL.AUTOIT_WinWaitActive(title, defaultString(text),
+				timeout) == SUCCESS_WIN_WAIT;
 	}
 
 	/**
@@ -1636,7 +1604,7 @@ public final class AutoItDLL {
 	 * @see #winWaitNotActive(String, String, int)
 	 */
 	public static boolean winWaitClose(final String title) {
-		return winWaitClose(title, DEFAULT_WIN_TEXT);
+		return winWaitClose(title, null);
 	}
 
 	/**
@@ -1655,7 +1623,7 @@ public final class AutoItDLL {
 	 * @see #winWaitNotActive(String, String, int)
 	 */
 	public static boolean winWaitClose(final String title, final int timeout) {
-		return winWaitClose(title, DEFAULT_WIN_TEXT, timeout);
+		return winWaitClose(title, null, timeout);
 	}
 
 	/**
@@ -1673,7 +1641,7 @@ public final class AutoItDLL {
 	 * @see #winWaitNotActive(String, String, int)
 	 */
 	public static boolean winWaitClose(final String title, final String text) {
-		return winWaitClose(title, text, 0);
+		return winWaitClose(title, defaultString(text), 0);
 	}
 
 	/**
@@ -1695,8 +1663,8 @@ public final class AutoItDLL {
 	 */
 	public static boolean winWaitClose(final String title, final String text,
 			final int timeout) {
-		final int value = autoItDLL.AUTOIT_WinWaitClose(title, text, timeout);
-		return value == SUCCESS_WIN_WAIT;
+		return autoItDLL.AUTOIT_WinWaitClose(title, defaultString(text),
+				timeout) == SUCCESS_WIN_WAIT;
 	}
 
 	/**
@@ -1712,7 +1680,7 @@ public final class AutoItDLL {
 	 * @see #winWaitClose(String, String, int)
 	 */
 	public static boolean winWaitNotActive(final String title) {
-		return winWaitNotActive(title, DEFAULT_WIN_TEXT);
+		return winWaitNotActive(title, null);
 	}
 
 	/**
@@ -1731,7 +1699,7 @@ public final class AutoItDLL {
 	 * @see #winWaitClose(String, String, int)
 	 */
 	public static boolean winWaitNotActive(final String title, final int timeout) {
-		return winWaitNotActive(title, DEFAULT_WIN_TEXT, timeout);
+		return winWaitNotActive(title, null, timeout);
 	}
 
 	/**
@@ -1747,7 +1715,7 @@ public final class AutoItDLL {
 	 * @see #winWaitClose(String, String, int)
 	 */
 	public static boolean winWaitNotActive(final String title, final String text) {
-		return winWaitNotActive(title, text, 0);
+		return winWaitNotActive(title, defaultString(text), 0);
 	}
 
 	/**
@@ -1769,9 +1737,112 @@ public final class AutoItDLL {
 	 */
 	public static boolean winWaitNotActive(final String title,
 			final String text, final int timeout) {
-		final int value = autoItDLL.AUTOIT_WinWaitNotActive(title, text,
-				timeout);
-		return value == SUCCESS_WIN_WAIT;
+		return autoItDLL.AUTOIT_WinWaitNotActive(title, defaultString(text),
+				timeout) == SUCCESS_WIN_WAIT;
+	}
+
+	private static void closeStream(final Closeable closable) {
+		if (closable != null) {
+			try {
+				closable.close();
+			} catch (Exception e) {
+				// Ignore exception
+			}
+		}
+	}
+
+	/**
+	 * Convert relative X coordinate of the mouse pointer to absolute if current
+	 * mouse coord mode is 'absolute screen coordinates'.
+	 * 
+	 * @param x
+	 *            The X coordinate of the mouse pointer.
+	 */
+	private static int convertMouseCoordXToAbsolute(int x) {
+		if (mouseCoordMode == CoordMode.RELATIVE_TO_ACTIVE_WINDOW) {
+			return x;
+		}
+		int absoluteX = x;
+		HWND hWnd = getActiveWindow();
+		if (hWnd != null) {
+			absoluteX += getWindowRect(hWnd).left;
+		}
+		return absoluteX;
+	}
+
+	/**
+	 * Convert relative X coordinate of the mouse pointer to relative if current
+	 * mouse coord mode is 'absolute screen coordinates'.
+	 * 
+	 * @param x
+	 *            The X coordinate of the mouse pointer.
+	 */
+	private static int convertMouseCoordXToRelative(int x) {
+		if (mouseCoordMode == CoordMode.RELATIVE_TO_ACTIVE_WINDOW) {
+			return x;
+		}
+		int absoluteX = x;
+		HWND hWnd = getActiveWindow();
+		if (hWnd != null) {
+			absoluteX -= getWindowRect(hWnd).left;
+		}
+		return absoluteX;
+	}
+
+	/**
+	 * Convert relative Y coordinate of the mouse pointer to absolute if current
+	 * mouse coord mode is 'absolute screen coordinates'.
+	 * 
+	 * @param y
+	 *            The Y coordinate of the mouse pointer.
+	 */
+	private static int convertMouseCoordYToAbsolute(int y) {
+		if (mouseCoordMode == CoordMode.RELATIVE_TO_ACTIVE_WINDOW) {
+			return y;
+		}
+		int absoluteY = y;
+		HWND hWnd = getActiveWindow();
+		if (hWnd != null) {
+			absoluteY += getWindowRect(hWnd).top;
+		}
+		return absoluteY;
+	}
+
+	/**
+	 * Convert relative Y coordinate of the mouse pointer to relative if current
+	 * mouse coord mode is 'absolute screen coordinates'.
+	 * 
+	 * @param y
+	 *            The Y coordinate of the mouse pointer.
+	 */
+	private static int convertMouseCoordYToRelative(int y) {
+		if (mouseCoordMode == CoordMode.RELATIVE_TO_ACTIVE_WINDOW) {
+			return y;
+		}
+		int absoluteY = y;
+		HWND hWnd = getActiveWindow();
+		if (hWnd != null) {
+			absoluteY -= getWindowRect(hWnd).top;
+		}
+		return absoluteY;
+	}
+
+	private static HWND getActiveWindow() {
+		HWND hWnd = User32Ext.INSTANCE.GetActiveWindow();
+		if (hWnd == null) {
+			hWnd = User32Ext.INSTANCE.GetForegroundWindow();
+		}
+		return hWnd;
+	}
+
+	private static String defaultString(String text) {
+		return (text == null) ? "" : text;
+	}
+
+	private static RECT getWindowRect(HWND hWnd) {
+		RECT rect = new RECT();
+		User32Ext.INSTANCE.GetWindowRect(hWnd, rect);
+		return rect;
 	}
 
 	/**
@@ -1795,14 +1866,6 @@ public final class AutoItDLL {
 	 * @author zhengbo.wang
 	 */
 	public static interface Keys {
-		// {!}
-		// {!}
-		// {#}
-		// {+}
-		// {^}
-		// {{}
-		// {}}
-
 		public static final String SPACE = "{SPACE}";
 		public static final String ENTER = "{ENTER}";
 		public static final String ALT = "{ALT}";
@@ -2192,6 +2255,42 @@ public final class AutoItDLL {
 	}
 
 	/**
+	 * The way coords are used in the mouse functions, either absolute coords or
+	 * coords relative to the current active window.
+	 * 
+	 * @author zhengbo.wang
+	 */
+	public static enum CoordMode {
+		/* relative coords to the active window */
+		RELATIVE_TO_ACTIVE_WINDOW(0),
+
+		/* absolute screen coordinates (default) */
+		ABSOLUTE_SCREEN_COORDINATES(1);
+
+		private final int coordMode;
+
+		private CoordMode(final int coordMode) {
+			this.coordMode = coordMode;
+		}
+
+		public int getCoordMode() {
+			return coordMode;
+		}
+
+		@Override
+		public String toString() {
+			switch (this) {
+			case RELATIVE_TO_ACTIVE_WINDOW:
+				return "relative coords to the active window";
+			case ABSOLUTE_SCREEN_COORDINATES:
+				return "absolute screen coordinates";
+			default:
+				return "Unknown coord mode";
+			}
+		}
+	}
+
+	/**
 	 * The way that AutoIt matches window titles in functions such as
 	 * AUTOIT_WinWait, AUTOIT_IfWinActive, etc, default is
 	 * TitleMatchMode.START_WITH.
@@ -2345,17 +2444,6 @@ public final class AutoItDLL {
 		public void AUTOIT_ClipPut(final String text);
 
 		/**
-		 * Closes down AutoIt. This function is called automatically when the
-		 * DLL is unloaded.
-		 * 
-		 * Remarks: This is called internally when the DLL unloads.
-		 * 
-		 * If you are using the static library version of AutoIt, call this
-		 * function when you have finished using AutoIt functions.
-		 */
-		public void AUTOIT_Close();
-
-		/**
 		 * Some programs use hidden text on windows this can cause problems when
 		 * trying to script them. This command allows you to tell AutoIt whether
 		 * or not to detect this hidden text.
@@ -2444,19 +2532,6 @@ public final class AutoItDLL {
 		 */
 		public void AUTOIT_IniRead(final String file, final String section,
 				final String value, final byte[] result);
-
-		/**
-		 * Resets AutoIt to defaults (window delays, key delays, etc.). This
-		 * function is called automatically when the DLL is loaded.
-		 * 
-		 * Remarks: This is called internally when the DLL loads.
-		 * 
-		 * If you are using the static library version of AutoIt, call this
-		 * function before using any AutoIt functions -- ideally call it as soon
-		 * as your program starts (and has input focus) for best results (helps
-		 * the AUTOIT_WinActivate command).
-		 */
-		public void AUTOIT_Init();
 
 		/**
 		 * Write a specified value to a standard .INI file.
@@ -3333,5 +3408,20 @@ public final class AutoItDLL {
 		 */
 		public int AUTOIT_WinWaitNotActive(final String title,
 				final String text, final int timeout);
+	}
+
+	private static interface User32Ext extends User32 {
+		public static User32Ext INSTANCE = (User32Ext) Native.loadLibrary(
+				"User32", User32Ext.class);
+
+		/**
+		 * Retrieves the window handle to the active window attached to the
+		 * calling thread's message queue.
+		 * 
+		 * @return The return value is the handle to the active window attached
+		 *         to the calling thread's message queue. Otherwise, the return
+		 *         value is NULL.
+		 */
+		public HWND GetActiveWindow();
 	}
 }

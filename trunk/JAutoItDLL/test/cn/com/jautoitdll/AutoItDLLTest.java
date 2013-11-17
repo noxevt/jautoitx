@@ -17,6 +17,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.omg.CORBA.LongHolder;
 
+import cn.com.jautoitdll.AutoItDLL.CoordMode;
+import cn.com.jautoitdll.AutoItDLL.Keys;
 import cn.com.jautoitdll.AutoItDLL.ShutdownMode;
 import cn.com.jautoitdll.AutoItDLL.TitleMatchMode;
 
@@ -39,12 +41,14 @@ public class AutoItDLLTest {
 			: "titled - Note";
 	private static final String NOTEPAD_TITLE_END = isZhUserLanguage ? "记事本"
 			: "Notepad";
+	private long currentTimeMillis = 0;
 
 	@Before
 	public void setUp() {
 		while (AutoItDLL.ifWinExist(NOTEPAD_TITLE)) {
 			AutoItDLL.winClose(NOTEPAD_TITLE);
 		}
+		currentTimeMillis = System.currentTimeMillis();
 	}
 
 	@Test
@@ -78,25 +82,6 @@ public class AutoItDLLTest {
 
 		AutoItDLL.clipPut("World");
 		Assert.assertEquals("World", AutoItDLL.clipGet());
-
-		AutoItDLL.clipPut("One world, one dream.");
-		Assert.assertEquals("One world, one dream.", AutoItDLL.clipGet());
-
-		AutoItDLL.clipPut("同一个世界，同一个梦想。");
-		Assert.assertEquals("同一个世界，同一个梦想。", AutoItDLL.clipGet());
-	}
-
-	@Test
-	public void close() {
-		AutoItDLL.close();
-
-		AutoItDLL.clipPut("Hello");
-		Assert.assertEquals("Hello", AutoItDLL.clipGet());
-
-		AutoItDLL.clipPut("World");
-		Assert.assertEquals("World", AutoItDLL.clipGet());
-
-		AutoItDLL.init();
 
 		AutoItDLL.clipPut("One world, one dream.");
 		Assert.assertEquals("One world, one dream.", AutoItDLL.clipGet());
@@ -213,6 +198,28 @@ public class AutoItDLLTest {
 	}
 
 	@Test
+	public void ifWinExist() {
+		Assert.assertFalse(AutoItDLL.ifWinExist(NOTEPAD_TITLE));
+		runNotepad();
+		Assert.assertTrue(AutoItDLL.ifWinExist(NOTEPAD_TITLE));
+
+		// minimize notepad
+		AutoItDLL.winMinimize(NOTEPAD_TITLE);
+		Assert.assertTrue(AutoItDLL.ifWinExist(NOTEPAD_TITLE));
+
+		// hide notepad
+		AutoItDLL.winHide(NOTEPAD_TITLE);
+		Assert.assertFalse(AutoItDLL.ifWinExist(NOTEPAD_TITLE));
+
+		// show notepad
+		AutoItDLL.winShow(NOTEPAD_TITLE);
+		Assert.assertTrue(AutoItDLL.ifWinExist(NOTEPAD_TITLE));
+
+		AutoItDLL.winClose(NOTEPAD_TITLE);
+		Assert.assertFalse(AutoItDLL.ifWinExist(NOTEPAD_TITLE));
+	}
+
+	@Test
 	public void iniDelete() throws IOException {
 		FileUtils.copyFile(new File("test/iniDelete.tmp"), new File(
 				"test/iniDelete.ini"));
@@ -230,7 +237,7 @@ public class AutoItDLLTest {
 				"NotExistsSection", "Key");
 		assertFileContentEquals("test/iniDelete_2.ini", "test/iniDelete.ini");
 
-		// delete not exists selection
+		// delete not exists key
 		AutoItDLL.iniDelete(new File("test/iniDelete.ini").getAbsolutePath(),
 				"SectionName", "NotExistsKey");
 		assertFileContentEquals("test/iniDelete_2.ini", "test/iniDelete.ini");
@@ -267,107 +274,353 @@ public class AutoItDLLTest {
 	}
 
 	@Test
-	public void ifWinExist() {
-		Assert.assertFalse(AutoItDLL.ifWinExist(NOTEPAD_TITLE));
-		runNotepad();
-		Assert.assertTrue(AutoItDLL.ifWinExist(NOTEPAD_TITLE));
-
-		// minimize notepad
-		AutoItDLL.winMinimize(NOTEPAD_TITLE);
-		Assert.assertTrue(AutoItDLL.ifWinExist(NOTEPAD_TITLE));
-
-		// hide notepad
-		AutoItDLL.winHide(NOTEPAD_TITLE);
-		Assert.assertFalse(AutoItDLL.ifWinExist(NOTEPAD_TITLE));
-
-		// show notepad
-		AutoItDLL.winShow(NOTEPAD_TITLE);
-		Assert.assertTrue(AutoItDLL.ifWinExist(NOTEPAD_TITLE));
-
-		AutoItDLL.winClose(NOTEPAD_TITLE);
-		Assert.assertFalse(AutoItDLL.ifWinExist(NOTEPAD_TITLE));
-	}
-
-	@Test
-	public void init() {
-		AutoItDLL.init();
-	}
-
-	@Test
 	public void leftClick() {
-		AutoItDLL.leftClick(10, 10);
-		sleep(1000);
+		String title = "leftClick - " + currentTimeMillis;
+		Frame frame = createFrame(title, 10, 20);
 
-		Assert.assertEquals(10, AutoItDLL.mouseGetPosX());
-		Assert.assertEquals(10, AutoItDLL.mouseGetPosY());
+		try {
+			AutoItDLL.leftClick(100, 200);
+			int x = AutoItDLL.mouseGetPosX();
+			int y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 100) || (x == 99));
+			Assert.assertTrue("y is " + y, (y == 200) || (y == 199));
 
-		AutoItDLL.leftClick(12, 13);
-		sleep(1000);
+			AutoItDLL.leftClick(120, 230);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 120) || (x == 119));
+			Assert.assertTrue("y is " + y, (y == 230) || (y == 229));
 
-		Assert.assertEquals(12, AutoItDLL.mouseGetPosX());
-		Assert.assertEquals(13, AutoItDLL.mouseGetPosY());
+			// test relative mouse coord mode
+			AutoItDLL.setMouseCoordMode(CoordMode.RELATIVE_TO_ACTIVE_WINDOW);
+			AutoItDLL.leftClick(100, 200);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 100) || (x == 99));
+			Assert.assertTrue("y is " + y, (y == 200) || (y == 199));
+			AutoItDLL.setMouseCoordMode(CoordMode.ABSOLUTE_SCREEN_COORDINATES);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 110) || (x == 109));
+			Assert.assertTrue("y is " + y, (y == 220) || (y == 219));
+
+			AutoItDLL.setMouseCoordMode(CoordMode.RELATIVE_TO_ACTIVE_WINDOW);
+			AutoItDLL.leftClick(120, 230);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 120) || (x == 119));
+			Assert.assertTrue("y is " + y, (y == 230) || (y == 229));
+			AutoItDLL.setMouseCoordMode(CoordMode.ABSOLUTE_SCREEN_COORDINATES);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 130) || (x == 129));
+			Assert.assertTrue("y is " + y, (y == 250) || (y == 249));
+		} finally {
+			AutoItDLL.setMouseCoordMode(CoordMode.ABSOLUTE_SCREEN_COORDINATES);
+
+			frame.setVisible(false);
+			AutoItDLL.winWaitNotActive(title, 3);
+		}
 	}
 
 	@Test
 	public void leftClickDrag() {
-		AutoItDLL.leftClickDrag(10, 10, 20, 30);
-		Assert.assertEquals(20, AutoItDLL.mouseGetPosX());
-		Assert.assertEquals(30, AutoItDLL.mouseGetPosY());
+		String title = "leftClickDrag - " + currentTimeMillis;
+		Frame frame = createFrame(title, 10, 20);
+
+		try {
+			AutoItDLL.leftClickDrag(100, 200, 110, 210);
+			int x = AutoItDLL.mouseGetPosX();
+			int y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 110) || (x == 109));
+			Assert.assertTrue("y is " + y, (y == 210) || (y == 209));
+
+			AutoItDLL.leftClickDrag(120, 230, 130, 240);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 130) || (x == 129));
+			Assert.assertTrue("y is " + y, (y == 240) || (y == 239));
+
+			// test relative mouse coord mode
+			AutoItDLL.setMouseCoordMode(CoordMode.RELATIVE_TO_ACTIVE_WINDOW);
+			AutoItDLL.leftClickDrag(100, 200, 110, 210);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 110) || (x == 109));
+			Assert.assertTrue("y is " + y, (y == 210) || (y == 209));
+			AutoItDLL.setMouseCoordMode(CoordMode.ABSOLUTE_SCREEN_COORDINATES);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 120) || (x == 119));
+			Assert.assertTrue("y is " + y, (y == 230) || (y == 229));
+
+			AutoItDLL.setMouseCoordMode(CoordMode.RELATIVE_TO_ACTIVE_WINDOW);
+			AutoItDLL.leftClickDrag(120, 230, 130, 240);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 130) || (x == 129));
+			Assert.assertTrue("y is " + y, (y == 240) || (y == 239));
+			AutoItDLL.setMouseCoordMode(CoordMode.ABSOLUTE_SCREEN_COORDINATES);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 140) || (x == 139));
+			Assert.assertTrue("y is " + y, (y == 260) || (y == 259));
+		} finally {
+			AutoItDLL.setMouseCoordMode(CoordMode.ABSOLUTE_SCREEN_COORDINATES);
+
+			frame.setVisible(false);
+			AutoItDLL.winWaitNotActive(title, 3);
+		}
 	}
 
 	@Test
 	public void mouseGetPosX() {
-		AutoItDLL.mouseMove(10, 50);
-		Assert.assertEquals(10, AutoItDLL.mouseGetPosX());
-		Assert.assertEquals(50, AutoItDLL.mouseGetPosY());
+		String title = "mouseGetPosX - " + currentTimeMillis;
+		Frame frame = createFrame(title, 10, 20);
 
-		AutoItDLL.mouseMove(100, 500);
-		Assert.assertEquals(100, AutoItDLL.mouseGetPosX());
-		Assert.assertEquals(500, AutoItDLL.mouseGetPosY());
+		try {
+			AutoItDLL.mouseMove(10, 50);
+			int x = AutoItDLL.mouseGetPosX();
+			int y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 10) || (x == 9));
+			Assert.assertTrue("y is " + y, (y == 50) || (y == 49));
+
+			AutoItDLL.mouseMove(100, 500);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 100) || (x == 99));
+			Assert.assertTrue("y is " + y, (y == 500) || (y == 499));
+
+			// test relative mouse coord mode
+			AutoItDLL.setMouseCoordMode(CoordMode.RELATIVE_TO_ACTIVE_WINDOW);
+			AutoItDLL.mouseMove(10, 50);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 10) || (x == 9));
+			Assert.assertTrue("y is " + y, (y == 50) || (y == 49));
+			AutoItDLL.setMouseCoordMode(CoordMode.ABSOLUTE_SCREEN_COORDINATES);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 20) || (x == 19));
+			Assert.assertTrue("y is " + y, (y == 70) || (y == 69));
+
+			AutoItDLL.setMouseCoordMode(CoordMode.RELATIVE_TO_ACTIVE_WINDOW);
+			AutoItDLL.mouseMove(100, 500);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 100) || (x == 99));
+			Assert.assertTrue("y is " + y, (y == 500) || (y == 499));
+			AutoItDLL.setMouseCoordMode(CoordMode.ABSOLUTE_SCREEN_COORDINATES);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 110) || (x == 109));
+			Assert.assertTrue("y is " + y, (y == 520) || (y == 519));
+		} finally {
+			AutoItDLL.setMouseCoordMode(CoordMode.ABSOLUTE_SCREEN_COORDINATES);
+
+			frame.setVisible(false);
+			AutoItDLL.winWaitNotActive(title, 3);
+		}
 	}
 
 	@Test
 	public void mouseGetPosY() {
-		AutoItDLL.mouseMove(10, 50);
-		Assert.assertEquals(10, AutoItDLL.mouseGetPosX());
-		Assert.assertEquals(50, AutoItDLL.mouseGetPosY());
+		String title = "mouseGetPosY - " + currentTimeMillis;
+		Frame frame = createFrame(title, 10, 20);
 
-		AutoItDLL.mouseMove(100, 500);
-		Assert.assertEquals(100, AutoItDLL.mouseGetPosX());
-		Assert.assertEquals(500, AutoItDLL.mouseGetPosY());
+		try {
+			AutoItDLL.mouseMove(10, 50);
+			int x = AutoItDLL.mouseGetPosX();
+			int y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 10) || (x == 9));
+			Assert.assertTrue("y is " + y, (y == 50) || (y == 49));
+
+			AutoItDLL.mouseMove(100, 500);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 100) || (x == 99));
+			Assert.assertTrue("y is " + y, (y == 500) || (y == 499));
+
+			// test relative mouse coord mode
+			AutoItDLL.setMouseCoordMode(CoordMode.RELATIVE_TO_ACTIVE_WINDOW);
+			AutoItDLL.mouseMove(10, 50);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 10) || (x == 9));
+			Assert.assertTrue("y is " + y, (y == 50) || (y == 49));
+			AutoItDLL.setMouseCoordMode(CoordMode.ABSOLUTE_SCREEN_COORDINATES);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 20) || (x == 19));
+			Assert.assertTrue("y is " + y, (y == 70) || (y == 69));
+
+			AutoItDLL.setMouseCoordMode(CoordMode.RELATIVE_TO_ACTIVE_WINDOW);
+			AutoItDLL.mouseMove(100, 500);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 100) || (x == 99));
+			Assert.assertTrue("y is " + y, (y == 500) || (y == 499));
+			AutoItDLL.setMouseCoordMode(CoordMode.ABSOLUTE_SCREEN_COORDINATES);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 110) || (x == 109));
+			Assert.assertTrue("y is " + y, (y == 520) || (y == 519));
+		} finally {
+			AutoItDLL.setMouseCoordMode(CoordMode.ABSOLUTE_SCREEN_COORDINATES);
+
+			frame.setVisible(false);
+			AutoItDLL.winWaitNotActive(title, 3);
+		}
 	}
 
 	@Test
 	public void mouseMove() {
-		AutoItDLL.mouseMove(10, 50);
-		Assert.assertEquals(9, AutoItDLL.mouseGetPosX());
-		Assert.assertEquals(49, AutoItDLL.mouseGetPosY());
+		String title = "mouseMove - " + currentTimeMillis;
+		Frame frame = createFrame(title, 10, 20);
 
-		AutoItDLL.mouseMove(100, 500);
-		Assert.assertEquals(99, AutoItDLL.mouseGetPosX());
-		Assert.assertEquals(499, AutoItDLL.mouseGetPosY());
+		try {
+			AutoItDLL.mouseMove(10, 50);
+			int x = AutoItDLL.mouseGetPosX();
+			int y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 10) || (x == 9));
+			Assert.assertTrue("y is " + y, (y == 50) || (y == 49));
+
+			AutoItDLL.mouseMove(100, 500);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 100) || (x == 99));
+			Assert.assertTrue("y is " + y, (y == 500) || (y == 499));
+
+			// test relative mouse coord mode
+			AutoItDLL.setMouseCoordMode(CoordMode.RELATIVE_TO_ACTIVE_WINDOW);
+			AutoItDLL.mouseMove(10, 50);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 10) || (x == 9));
+			Assert.assertTrue("y is " + y, (y == 50) || (y == 49));
+			AutoItDLL.setMouseCoordMode(CoordMode.ABSOLUTE_SCREEN_COORDINATES);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 20) || (x == 19));
+			Assert.assertTrue("y is " + y, (y == 70) || (y == 69));
+
+			AutoItDLL.setMouseCoordMode(CoordMode.RELATIVE_TO_ACTIVE_WINDOW);
+			AutoItDLL.mouseMove(100, 500);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 100) || (x == 99));
+			Assert.assertTrue("y is " + y, (y == 500) || (y == 499));
+			AutoItDLL.setMouseCoordMode(CoordMode.ABSOLUTE_SCREEN_COORDINATES);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 110) || (x == 109));
+			Assert.assertTrue("y is " + y, (y == 520) || (y == 519));
+		} finally {
+			AutoItDLL.setMouseCoordMode(CoordMode.ABSOLUTE_SCREEN_COORDINATES);
+
+			frame.setVisible(false);
+			AutoItDLL.winWaitNotActive(title, 3);
+		}
 	}
 
 	@Test
 	public void rightClick() {
-		AutoItDLL.rightClick(10, 10);
-		sleep(1000);
+		String title = "rightClick - " + currentTimeMillis;
+		Frame frame = createFrame(title, 10, 20);
 
-		Assert.assertEquals(10, AutoItDLL.mouseGetPosX());
-		Assert.assertEquals(10, AutoItDLL.mouseGetPosY());
+		try {
+			AutoItDLL.rightClick(100, 200);
+			int x = AutoItDLL.mouseGetPosX();
+			int y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 100) || (x == 99));
+			Assert.assertTrue("y is " + y, (y == 200) || (y == 199));
 
-		AutoItDLL.rightClick(12, 13);
-		sleep(1000);
+			AutoItDLL.rightClick(120, 230);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 120) || (x == 119));
+			Assert.assertTrue("y is " + y, (y == 230) || (y == 229));
 
-		Assert.assertEquals(12, AutoItDLL.mouseGetPosX());
-		Assert.assertEquals(13, AutoItDLL.mouseGetPosY());
+			// test relative mouse coord mode
+			AutoItDLL.setMouseCoordMode(CoordMode.RELATIVE_TO_ACTIVE_WINDOW);
+			AutoItDLL.rightClick(100, 200);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 100) || (x == 99));
+			Assert.assertTrue("y is " + y, (y == 200) || (y == 199));
+			AutoItDLL.setMouseCoordMode(CoordMode.ABSOLUTE_SCREEN_COORDINATES);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 110) || (x == 109));
+			Assert.assertTrue("y is " + y, (y == 220) || (y == 219));
+
+			AutoItDLL.setMouseCoordMode(CoordMode.RELATIVE_TO_ACTIVE_WINDOW);
+			AutoItDLL.rightClick(120, 230);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 120) || (x == 119));
+			Assert.assertTrue("y is " + y, (y == 230) || (y == 229));
+			AutoItDLL.setMouseCoordMode(CoordMode.ABSOLUTE_SCREEN_COORDINATES);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 130) || (x == 129));
+			Assert.assertTrue("y is " + y, (y == 250) || (y == 249));
+		} finally {
+			AutoItDLL.setMouseCoordMode(CoordMode.ABSOLUTE_SCREEN_COORDINATES);
+
+			frame.setVisible(false);
+			AutoItDLL.winWaitNotActive(title, 3);
+		}
 	}
 
 	@Test
 	public void rightClickDrag() {
-		AutoItDLL.rightClickDrag(10, 10, 20, 30);
-		Assert.assertEquals(20, AutoItDLL.mouseGetPosX());
-		Assert.assertEquals(30, AutoItDLL.mouseGetPosY());
+		String title = "rightClickDrag - " + currentTimeMillis;
+		Frame frame = createFrame(title, 10, 20);
+
+		try {
+			AutoItDLL.rightClickDrag(100, 200, 110, 210);
+			int x = AutoItDLL.mouseGetPosX();
+			int y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 110) || (x == 109));
+			Assert.assertTrue("y is " + y, (y == 210) || (y == 209));
+
+			AutoItDLL.rightClickDrag(120, 230, 130, 240);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 130) || (x == 129));
+			Assert.assertTrue("y is " + y, (y == 240) || (y == 239));
+
+			// test relative mouse coord mode
+			AutoItDLL.setMouseCoordMode(CoordMode.RELATIVE_TO_ACTIVE_WINDOW);
+			AutoItDLL.rightClickDrag(100, 200, 110, 210);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 110) || (x == 109));
+			Assert.assertTrue("y is " + y, (y == 210) || (y == 209));
+			AutoItDLL.setMouseCoordMode(CoordMode.ABSOLUTE_SCREEN_COORDINATES);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 120) || (x == 119));
+			Assert.assertTrue("y is " + y, (y == 230) || (y == 229));
+
+			AutoItDLL.setMouseCoordMode(CoordMode.RELATIVE_TO_ACTIVE_WINDOW);
+			AutoItDLL.rightClickDrag(120, 230, 130, 240);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 130) || (x == 129));
+			Assert.assertTrue("y is " + y, (y == 240) || (y == 239));
+			AutoItDLL.setMouseCoordMode(CoordMode.ABSOLUTE_SCREEN_COORDINATES);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 140) || (x == 139));
+			Assert.assertTrue("y is " + y, (y == 260) || (y == 259));
+		} finally {
+			AutoItDLL.setMouseCoordMode(CoordMode.ABSOLUTE_SCREEN_COORDINATES);
+
+			frame.setVisible(false);
+			AutoItDLL.winWaitNotActive(title, 3);
+		}
 	}
 
 	@Test
@@ -473,27 +726,90 @@ public class AutoItDLLTest {
 	}
 
 	@Test
+	public void setMouseCoordMode() {
+		try {
+			AutoItDLL.setMouseCoordMode(null);
+			Assert.fail();
+		} catch (IllegalArgumentException e) {
+			Assert.assertEquals("mouseCoordMode can not be null.",
+					e.getMessage());
+		} catch (Exception e) {
+			Assert.fail();
+		}
+
+		String title = "setMouseCoordMode - " + currentTimeMillis;
+		Frame frame = createFrame(title, 10, 20);
+
+		try {
+			Assert.assertEquals(CoordMode.ABSOLUTE_SCREEN_COORDINATES,
+					AutoItDLL.DEFAULT_MOUSE_COORD_MODE);
+
+			AutoItDLL.mouseMove(10, 50);
+			int x = AutoItDLL.mouseGetPosX();
+			int y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 10) || (x == 9));
+			Assert.assertTrue("y is " + y, (y == 50) || (y == 49));
+
+			AutoItDLL.mouseMove(100, 500);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 100) || (x == 99));
+			Assert.assertTrue("y is " + y, (y == 500) || (y == 499));
+
+			// test relative mouse coord mode
+			AutoItDLL.setMouseCoordMode(CoordMode.RELATIVE_TO_ACTIVE_WINDOW);
+			AutoItDLL.mouseMove(10, 50);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 10) || (x == 9));
+			Assert.assertTrue("y is " + y, (y == 50) || (y == 49));
+			AutoItDLL.setMouseCoordMode(CoordMode.ABSOLUTE_SCREEN_COORDINATES);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 20) || (x == 19));
+			Assert.assertTrue("y is " + y, (y == 70) || (y == 69));
+
+			AutoItDLL.setMouseCoordMode(CoordMode.RELATIVE_TO_ACTIVE_WINDOW);
+			AutoItDLL.mouseMove(100, 500);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 100) || (x == 99));
+			Assert.assertTrue("y is " + y, (y == 500) || (y == 499));
+			AutoItDLL.setMouseCoordMode(CoordMode.ABSOLUTE_SCREEN_COORDINATES);
+			x = AutoItDLL.mouseGetPosX();
+			y = AutoItDLL.mouseGetPosY();
+			Assert.assertTrue("x is " + x, (x == 110) || (x == 109));
+			Assert.assertTrue("y is " + y, (y == 520) || (y == 519));
+		} finally {
+			AutoItDLL.setMouseCoordMode(CoordMode.ABSOLUTE_SCREEN_COORDINATES);
+
+			frame.setVisible(false);
+			AutoItDLL.winWaitNotActive(title, 3);
+		}
+	}
+
+	@Test
 	public void setStoreCapslockMode() {
 		final boolean isCpaslockOn = isCapslockOn();
 
 		AutoItDLL.setCapslockState(true);
 		Assert.assertTrue(isCapslockOn());
 		AutoItDLL.setStoreCapslockMode(true);
-		AutoItDLL.send("{CAPSLOCK}");
+		AutoItDLL.send(Keys.CAPSLOCK);
 		Assert.assertTrue(isCapslockOn());
 
 		AutoItDLL.setStoreCapslockMode(false);
-		AutoItDLL.send("{CAPSLOCK}");
+		AutoItDLL.send(Keys.CAPSLOCK);
 		Assert.assertFalse(isCapslockOn());
 
 		AutoItDLL.setCapslockState(false);
 		Assert.assertFalse(isCapslockOn());
 		AutoItDLL.setStoreCapslockMode(true);
-		AutoItDLL.send("{CAPSLOCK}");
+		AutoItDLL.send(Keys.CAPSLOCK);
 		Assert.assertFalse(isCapslockOn());
 
 		AutoItDLL.setStoreCapslockMode(false);
-		AutoItDLL.send("{CAPSLOCK}");
+		AutoItDLL.send(Keys.CAPSLOCK);
 		Assert.assertTrue(isCapslockOn());
 
 		// restore default capslock
@@ -784,6 +1100,13 @@ public class AutoItDLLTest {
 	}
 
 	@Test
+	public void winMinimizeAllUndo() {
+		AutoItDLL.winMinimizeAll();
+		sleep(1000);
+		AutoItDLL.winMinimizeAllUndo();
+	}
+
+	@Test
 	public void winMove() {
 		Assert.assertFalse(AutoItDLL.ifWinExist(NOTEPAD_TITLE));
 		runNotepad();
@@ -1064,6 +1387,21 @@ public class AutoItDLLTest {
 		Assert.assertEquals(IOUtils.toString(input1), IOUtils.toString(input2));
 		IOUtils.closeQuietly(input1);
 		IOUtils.closeQuietly(input2);
+	}
+
+	private Frame createFrame(String title) {
+		return createFrame(title, 0, 0);
+	}
+
+	private Frame createFrame(String title, int x, int y) {
+		Frame frame = new Frame(title);
+		frame.setBounds(x, y, 400, 300);
+		frame.setVisible(true);
+		Assert.assertTrue(AutoItDLL.winWait(title, 60));
+		AutoItDLL.winActivate(title);
+		Assert.assertTrue(AutoItDLL.ifWinActive(title));
+
+		return frame;
 	}
 
 	/**

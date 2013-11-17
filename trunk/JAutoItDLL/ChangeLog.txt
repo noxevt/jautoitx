@@ -1,3 +1,10 @@
+16/11/2013 - 1.0.0-rc
+  1. Remove method AutoItDLL.init(), it is called internally when the DLL loands.
+  2. Remove method AutoItDLL.close(), it is called internally when the DLL unloads.
+  3. In previous version, the way coords are used in the mouse functions is
+     'relative to the active window', now it is changed to 'absolute screen coordinates',
+     you can change the coord mode with method AutoItDLL.setMouseCoordMode(CoordMode mouseCoordMode).
+
 26/05/2013 - 1.0.0-beta
   1. Move AutoItDLL.dll from lib directory to src/cn/com/jautoitdll/lib directory.
 
