@@ -3,11 +3,6 @@ package cn.com.jautoitx;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.sun.jna.Native;
-import com.sun.jna.platform.win32.User32;
-import com.sun.jna.platform.win32.WinDef.HWND;
-import com.sun.jna.win32.W32APIOptions;
-
 public class WinTest extends BaseTest {
 	@Test
 	public void activate() {
@@ -395,7 +390,6 @@ public class WinTest extends BaseTest {
 		Assert.assertFalse(Win.exists(NOTEPAD_TITLE));
 		runNotepad();
 		Assert.assertTrue(Win.exists(NOTEPAD_TITLE));
-		HWND hWnd = AutoItX.getActiveWindow();
 
 		// minimize notepad
 		Win.minimize(NOTEPAD_TITLE);
@@ -405,6 +399,7 @@ public class WinTest extends BaseTest {
 			@Override
 			public void run() {
 				Win.waitActive(NOTEPAD_TITLE);
+				// AutoItX.close();
 			}
 		});
 		thread.start();
@@ -415,11 +410,12 @@ public class WinTest extends BaseTest {
 		thread = new Thread(new Runnable() {
 			@Override
 			public void run() {
-				Win.wait(NOTEPAD_TITLE);
+				Win.waitActive(NOTEPAD_TITLE);
+				// AutoItX.close();
 			}
 		});
 		thread.start();
-		activateWindow(hWnd);
+		Win.activate(NOTEPAD_TITLE);
 		sleep(2000);
 		Assert.assertFalse(thread.isAlive());
 
@@ -438,6 +434,7 @@ public class WinTest extends BaseTest {
 			@Override
 			public void run() {
 				Win.waitClose(NOTEPAD_TITLE);
+				// AutoItX.close();
 			}
 		});
 		thread.start();
@@ -449,10 +446,11 @@ public class WinTest extends BaseTest {
 			@Override
 			public void run() {
 				Win.waitClose(NOTEPAD_TITLE);
+				// AutoItX.close();
 			}
 		});
 		thread.start();
-		closeWindow(AutoItX.getActiveWindow());
+		Win.close(NOTEPAD_TITLE);
 		sleep(2000);
 		Assert.assertFalse(thread.isAlive());
 	}
@@ -471,6 +469,7 @@ public class WinTest extends BaseTest {
 			@Override
 			public void run() {
 				Win.waitNotActive(NOTEPAD_TITLE);
+				// AutoItX.close();
 			}
 		});
 		thread.start();
@@ -482,57 +481,16 @@ public class WinTest extends BaseTest {
 			@Override
 			public void run() {
 				Win.waitNotActive(NOTEPAD_TITLE);
+				// AutoItX.close();
 			}
 		});
 		thread.start();
-		HWND hWnd = AutoItX.getActiveWindow();
-		minimizeWindow(hWnd);
+		Win.minimize(NOTEPAD_TITLE);
 		sleep(2000);
 		Assert.assertFalse(thread.isAlive());
 
 		// close notepad
 		Win.close(NOTEPAD_TITLE);
 		Assert.assertFalse(Win.exists(NOTEPAD_TITLE));
-	}
-
-	private void activateWindow(HWND hWnd) {
-		if (hWnd != null) {
-			Assert.assertTrue(User32Ext.INSTANCE.SetForegroundWindow(hWnd));
-		}
-	}
-
-	private void closeWindow(HWND hWnd) {
-		if (hWnd != null) {
-			final int WM_SYSCOMMAND = 0x0112;
-			final int SC_CLOSE = 0xF060;
-			User32Ext.INSTANCE.SendMessage(hWnd, WM_SYSCOMMAND, SC_CLOSE, 0);
-		}
-	}
-
-	private void minimizeWindow(HWND hWnd) {
-		if (hWnd != null) {
-			final int WM_SYSCOMMAND = 0x0112;
-			final int SC_MINIMIZE = 0xF020;
-			User32Ext.INSTANCE.SendMessage(hWnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
-		}
-	}
-
-	private static interface User32Ext extends User32 {
-		public static User32Ext INSTANCE = (User32Ext) Native.loadLibrary(
-				"User32", User32Ext.class, W32APIOptions.DEFAULT_OPTIONS);
-
-		public int SendMessage(HWND hWnd, int msg, int wParam, int lParam);
-
-		/**
-		 * Activates a window. The window must be attached to the calling
-		 * thread's message queue.
-		 * 
-		 * @param hWnd
-		 *            A handle to the top-level window to be activated.
-		 * @return If the function succeeds, the return value is the handle to
-		 *         the window that was previously active. If the function fails,
-		 *         the return value is null.
-		 */
-		public HWND SetActiveWindow(HWND hWnd);
 	}
 }

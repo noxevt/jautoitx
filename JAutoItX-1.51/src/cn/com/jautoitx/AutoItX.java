@@ -6,7 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Field;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -14,7 +15,9 @@ import org.apache.log4j.PropertyConfigurator;
 import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.ComFailException;
 import com.jacob.com.ComThread;
+import com.jacob.com.LibraryLoader;
 import com.jacob.com.Variant;
+import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.platform.win32.WinDef.HWND;
 
@@ -63,16 +66,15 @@ public class AutoItX {
 
 	/* AutoItX library name */
 	private static final String AUTOITX_DLL_LIB_NAME = "AutoItX";
-	private static final String[] DLL_LIB_NAMES = new String[] {
-			AUTOITX_DLL_LIB_NAME, "jacob-1.17-x64", "jacob-1.17-x86" };
 
 	/* AutoItX library path */
 	private static final String DLL_LIB_RESOURCE_PATH = "/cn/com/jautoitx/lib/";
 
 	private static final Logger logger = Logger.getLogger(AutoItX.class);
-	private static final String AUTOIT_WEBSITE = "http://www.autoitscript.com/site/autoit/";
+	private static AutoItXLibrary autoItX;
 	private static final String AUTOITX_PROGRAM_ID = "AutoItX.Control";
-	public static ActiveXComponent autoItXControl = null;
+	private static ActiveXComponent autoItXControl = null;
+	private static Map<Thread, Boolean> threads = new WeakHashMap<Thread, Boolean>();
 
 	/* AutoItX's version */
 	private static String autoItXVersion = null;
@@ -117,128 +119,49 @@ public class AutoItX {
 	 * @throws IOException
 	 */
 	private static void loadNativeLibrary() throws IOException {
+		System.setProperty("com.jacob.autogc", "true");
+
 		File tmpFile = File.createTempFile("JAutoItX", ".tmp");
 		tmpFile.deleteOnExit();
 
 		// Copy all dll library to temporary-file directory
-		File autoItXLibFile = null;
-		for (String dllLibName : DLL_LIB_NAMES) {
-			File libFile = copyDllLibToDir(tmpFile.getParentFile(), dllLibName,
-					AUTOITX_DLL_LIB_NAME.equals(dllLibName));
-			if (AUTOITX_DLL_LIB_NAME.equals(dllLibName)) {
-				autoItXLibFile = libFile;
-			}
-		}
+		File autoItXLibFile = copyDllLibToDir(tmpFile.getParentFile(),
+				AUTOITX_DLL_LIB_NAME);
+		File jacobLibFile = copyDllLibToDir(tmpFile.getParentFile(),
+				LibraryLoader.getPreferredDLLName());
 		autoItXVersion = Win32.getFileVersion(autoItXLibFile);
 
-		// Add temporary-file directory to java library path
-		String libPath = defaultString(System.getProperty("java.library.path"));
-		libPath += File.pathSeparator + tmpFile.getParent();
-		System.setProperty("java.library.path", libPath);
-		try {
-			Field fieldSysPath = ClassLoader.class
-					.getDeclaredField("sys_paths");
-			fieldSysPath.setAccessible(true);
-			fieldSysPath.set(null, null);
-		} catch (Exception e) {
-			logger.error(String.format("Set java.library.path to %s failed.",
-					libPath), e);
-		}
-
-		// Register AutoItX.dll with regsvr32.exe
-		boolean autoItXRegistered = false;
-		String regsvr32Exe = "regsvr32.exe";
-		try {
-			ProcessBuilder processBuilder = new ProcessBuilder(regsvr32Exe,
-					"/s", autoItXLibFile.getAbsolutePath());
-			processBuilder.start();
-			autoItXRegistered = true;
-		} catch (Exception e) {
-			String winDir = System.getenv("windir");
-			File regsvr32 = null;
-			if ((winDir != null) && (winDir.trim().length() != 0)) {
-				if (!winDir.endsWith(File.separator)) {
-					winDir += File.separator;
-				}
-				regsvr32 = new File(winDir + "system32" + File.separator
-						+ regsvr32Exe);
-			}
-
-			// Use absolute path for regsvr32.exe and retry register AutoItX.dll
-			if ((regsvr32 != null) && regsvr32.exists()) {
-				try {
-					ProcessBuilder processBuilder = new ProcessBuilder(
-							regsvr32.getAbsolutePath(), "/s",
-							autoItXLibFile.getAbsolutePath());
-					processBuilder.start();
-					autoItXRegistered = true;
-				} catch (Exception e2) {
-					logger.error(String.format("Unable to register %s.",
-							AUTOITX_DLL_LIB_NAME + ".dll"), e2);
-				}
-			} else {
-				logger.error(String.format("Unable to register %s.",
-						AUTOITX_DLL_LIB_NAME + ".dll"), e);
-			}
-		}
-
-		try {
-			if (autoItXRegistered) {
-				ComFailException exception = null;
-				for (int i = 0; i < 10; i++) {
-					try {
-						autoItXControl = new ActiveXComponent(
-								AUTOITX_PROGRAM_ID);
-
-						// Break if create AutoItX control success
-						break;
-					} catch (ComFailException e) {
-						exception = e;
-					}
-
-					try {
-						Thread.sleep(250);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-
-				// Throw exception if AutoItX control create failed
-				if (autoItXControl == null) {
-					throw exception;
-				}
-			} else {
-				autoItXControl = new ActiveXComponent(AUTOITX_PROGRAM_ID);
-			}
-
-			ComThread.InitSTA();
-		} catch (ComFailException e) {
-			throw new RuntimeException(
-					String.format(
-							"Create ActiveXComponent for %s failed, please install AutoIt. You can download it from %s.",
-							AUTOITX_PROGRAM_ID, AUTOIT_WEBSITE), e);
-		}
-
+		// Register AutoItX.Control
+		System.load(autoItXLibFile.getPath());
+		autoItX = (AutoItXLibrary) Native.loadLibrary(autoItXLibFile.getName(),
+				AutoItXLibrary.class);
 		Native.setProtected(true);
+		autoItX.DllRegisterServer();
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				autoItX.DllUnregisterServer();
+			}
+		});
+
+		// Ask LibraryLoader to load the dll for us based on the path we set
+		System.setProperty(LibraryLoader.JACOB_DLL_PATH,
+				jacobLibFile.getAbsolutePath());
+		LibraryLoader.loadJacobLibrary();
 	}
 
-	private static File copyDllLibToDir(File dir, String dllLibName,
-			boolean useTempFile) throws IOException {
+	private static File copyDllLibToDir(File dir, String dllLibName)
+			throws IOException {
 		// Get what the system "thinks" the library name should be.
 		String libNativeName = System.mapLibraryName(dllLibName);
 
 		// Create the temp file for this instance of the library.
-		File libFile = null;
-		if (useTempFile) {
-			// Slice up the library name.
-			int i = libNativeName.lastIndexOf('.');
-			String libNativePrefix = libNativeName.substring(0, i) + '_';
-			String libNativeSuffix = libNativeName.substring(i);
-			libFile = File
-					.createTempFile(libNativePrefix, libNativeSuffix, dir);
-		} else {
-			libFile = new File(dir, libNativeName);
-		}
+		// Slice up the library name.
+		int i = libNativeName.lastIndexOf('.');
+		String libNativePrefix = libNativeName.substring(0, i) + '_';
+		String libNativeSuffix = libNativeName.substring(i);
+		File libFile = File.createTempFile(libNativePrefix, libNativeSuffix,
+				dir);
 		libFile.deleteOnExit();
 
 		// This may return null in some circumstances.
@@ -273,13 +196,6 @@ public class AutoItX {
 		return autoItXVersion;
 	}
 
-	/**
-	 * Closes down AutoItX.
-	 */
-	public static void close() {
-		ComThread.Release();
-	}
-
 	protected static HWND getActiveWindow() {
 		HWND hWnd = Win32.user32.GetActiveWindow();
 		if (hWnd == null) {
@@ -293,6 +209,7 @@ public class AutoItX {
 	}
 
 	protected static Variant invoke(String name, Object... args) {
+		init();
 		Variant[] variantArgs = new Variant[args.length];
 		for (int i = 0; i < args.length; i++) {
 			variantArgs[i] = new Variant(args[i]);
@@ -324,5 +241,39 @@ public class AutoItX {
 				// Ignore exception
 			}
 		}
+	}
+
+	private static void init() {
+		Thread currentThread = Thread.currentThread();
+		synchronized (threads) {
+			if (!threads.containsKey(currentThread)) {
+				ComThread.InitSTA();
+
+				if (autoItXControl == null) {
+					try {
+						autoItXControl = new ActiveXComponent(
+								AUTOITX_PROGRAM_ID);
+					} catch (ComFailException e) {
+						throw new RuntimeException(String.format(
+								"Create ActiveXComponent for %s failed.",
+								AUTOITX_PROGRAM_ID), e);
+					}
+				}
+
+				threads.put(currentThread, true);
+			}
+		}
+	}
+
+	private static interface AutoItXLibrary extends Library {
+		/**
+		 * Register AutoItX.Control.
+		 */
+		public void DllRegisterServer();
+
+		/**
+		 * Unregister AutoItX.Control.
+		 */
+		public void DllUnregisterServer();
 	}
 }
