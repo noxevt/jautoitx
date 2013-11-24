@@ -1,2 +1,5 @@
+24/11/2013 - 1.51-beta
+  Add multiple threads support.
+
 17/11/2013 - 1.51-alpha
   First version.
