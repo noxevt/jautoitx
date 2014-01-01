@@ -2855,13 +2855,9 @@ public class ControlTest extends BaseTest {
 
 		Assert.assertTrue(Control.setText(NOTEPAD_TITLE, "Edit1", ""));
 		assertEquals("", Control.getText(NOTEPAD_TITLE, "Edit1"));
-		Assert.assertTrue(AutoItX.hasError());
 
-		assertEquals(
-				"",
-				Control.getText(NOTEPAD_TITLE,
-						"Edit1" + System.currentTimeMillis()));
-		Assert.assertTrue(AutoItX.hasError());
+		Assert.assertNull(Control.getText(NOTEPAD_TITLE,
+				"Edit1" + System.currentTimeMillis()));
 
 		// close process by pid
 		closeNotepad(pid);

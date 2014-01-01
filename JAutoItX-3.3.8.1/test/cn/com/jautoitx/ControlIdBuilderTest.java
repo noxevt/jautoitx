@@ -179,45 +179,61 @@ public class ControlIdBuilderTest extends BaseTest {
 		String handle = Control.getHandle(NOTEPAD_TITLE, "Edit1");
 		Assert.assertNotNull(handle);
 
-		Assert.assertEquals(
-				handle,
-				Control.getHandle(
-						NOTEPAD_TITLE,
-						ControlIdBuilder.by(By.id(15), By.bounds(
-								Control.getPosX(NOTEPAD_TITLE, "15"),
-								Control.getPosY(NOTEPAD_TITLE, "15"),
-								Control.getWidth(NOTEPAD_TITLE, "15"),
-								Control.getHeight(NOTEPAD_TITLE, "15")))));
 		Assert.assertEquals(handle, Control.getHandle(
 				NOTEPAD_TITLE,
 				ControlIdBuilder.by(By.id(15), By.bounds(
-						Control.getPosX(NOTEPAD_TITLE, "15") + 1,
-						Control.getPosY(NOTEPAD_TITLE, "15"),
-						Control.getWidth(NOTEPAD_TITLE, "15"),
-						Control.getHeight(NOTEPAD_TITLE, "15")))));
+						Control.getPosX(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15)),
+						Control.getPosY(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15)),
+						Control.getWidth(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15)),
+						Control.getHeight(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15))))));
+		Assert.assertEquals(handle, Control.getHandle(
+				NOTEPAD_TITLE,
+				ControlIdBuilder.by(By.id(15), By.bounds(
+						Control.getPosX(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15)) + 1,
+						Control.getPosY(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15)),
+						Control.getWidth(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15)),
+						Control.getHeight(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15))))));
 		Assert.assertNull(Control.getHandle(
 				NOTEPAD_TITLE,
 				ControlIdBuilder.by(By.bounds(
-						Control.getPosX(NOTEPAD_TITLE, "15") + 1,
-						Control.getPosY(NOTEPAD_TITLE, "15"),
-						Control.getWidth(NOTEPAD_TITLE, "15"),
-						Control.getHeight(NOTEPAD_TITLE, "15")))));
-		Assert.assertEquals(
-				handle,
-				Control.getHandle(
-						NOTEPAD_TITLE,
-						ControlIdBuilder.by(By.instance(1), By.bounds(
-								Control.getPosX(NOTEPAD_TITLE, "15"),
-								Control.getPosY(NOTEPAD_TITLE, "15"),
-								Control.getWidth(NOTEPAD_TITLE, "15"),
-								Control.getHeight(NOTEPAD_TITLE, "15")))));
+						Control.getPosX(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15)) + 1,
+						Control.getPosY(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15)),
+						Control.getWidth(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15)),
+						Control.getHeight(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15))))));
+		Assert.assertEquals(handle, Control.getHandle(
+				NOTEPAD_TITLE,
+				ControlIdBuilder.by(By.instance(1), By.bounds(
+						Control.getPosX(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15)),
+						Control.getPosY(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15)),
+						Control.getWidth(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15)),
+						Control.getHeight(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15))))));
 		Assert.assertNull(Control.getHandle(
 				NOTEPAD_TITLE,
 				ControlIdBuilder.by(By.instance(1), By.bounds(
-						Control.getPosX(NOTEPAD_TITLE, "15") + 1,
-						Control.getPosY(NOTEPAD_TITLE, "15"),
-						Control.getWidth(NOTEPAD_TITLE, "15"),
-						Control.getHeight(NOTEPAD_TITLE, "15")))));
+						Control.getPosX(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15)) + 1,
+						Control.getPosY(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15)),
+						Control.getWidth(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15)),
+						Control.getHeight(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15))))));
 
 		Assert.assertEquals(handle, Control.getHandle(NOTEPAD_TITLE,
 				ControlIdBuilder.by(By.id(15))));
@@ -238,24 +254,28 @@ public class ControlIdBuilderTest extends BaseTest {
 				Control.getHandle(
 						NOTEPAD_TITLE,
 						ControlIdBuilder.by(By.position(
-								Control.getPosX(NOTEPAD_TITLE, "15"),
-								Control.getPosY(NOTEPAD_TITLE, "15")))));
-		Assert.assertEquals(
-				handle,
-				Control.getHandle(
-						NOTEPAD_TITLE,
-						ControlIdBuilder.by(By.size(
-								Control.getWidth(NOTEPAD_TITLE, "15"),
-								Control.getHeight(NOTEPAD_TITLE, "15")))));
-		Assert.assertEquals(
-				handle,
-				Control.getHandle(
-						NOTEPAD_TITLE,
-						ControlIdBuilder.by(By.bounds(
-								Control.getPosX(NOTEPAD_TITLE, "15"),
-								Control.getPosY(NOTEPAD_TITLE, "15"),
-								Control.getWidth(NOTEPAD_TITLE, "15"),
-								Control.getHeight(NOTEPAD_TITLE, "15")))));
+								Control.getPosX(NOTEPAD_TITLE,
+										ControlIdBuilder.byId(15)),
+								Control.getPosY(NOTEPAD_TITLE,
+										ControlIdBuilder.byId(15))))));
+		Assert.assertEquals(handle, Control.getHandle(
+				NOTEPAD_TITLE,
+				ControlIdBuilder.by(By.size(
+						Control.getWidth(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15)),
+						Control.getHeight(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15))))));
+		Assert.assertEquals(handle, Control.getHandle(
+				NOTEPAD_TITLE,
+				ControlIdBuilder.by(By.bounds(
+						Control.getPosX(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15)),
+						Control.getPosY(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15)),
+						Control.getWidth(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15)),
+						Control.getHeight(NOTEPAD_TITLE,
+								ControlIdBuilder.byId(15))))));
 		Assert.assertEquals(
 				handle,
 				Control.getHandle(NOTEPAD_TITLE,

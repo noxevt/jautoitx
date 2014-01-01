@@ -1170,8 +1170,6 @@ public final class Mouse extends AutoItX {
 	/**
 	 * Moves the mouse wheel up or down. NT/2000/XP ONLY.
 	 * 
-	 * If the direction is not recognized, oAutoIt.error is set to 1.
-	 * 
 	 * This function only works on NT, 2000, XP and later operating systems.
 	 * 
 	 * @param direction
@@ -1183,8 +1181,6 @@ public final class Mouse extends AutoItX {
 
 	/**
 	 * Moves the mouse wheel up or down. NT/2000/XP ONLY.
-	 * 
-	 * If the direction is not recognized, oAutoIt.error is set to 1.
 	 * 
 	 * This function only works on NT, 2000, XP and later operating systems.
 	 * 
@@ -1200,8 +1196,6 @@ public final class Mouse extends AutoItX {
 	/**
 	 * Moves the mouse wheel up or down. NT/2000/XP ONLY.
 	 * 
-	 * If the direction is not recognized, oAutoIt.error is set to 1.
-	 * 
 	 * This function only works on NT, 2000, XP and later operating systems.
 	 * 
 	 * @param direction
@@ -1216,8 +1210,6 @@ public final class Mouse extends AutoItX {
 
 	/**
 	 * Moves the mouse wheel up or down. NT/2000/XP ONLY.
-	 * 
-	 * If the direction is not recognized, oAutoIt.error is set to 1.
 	 * 
 	 * This function only works on NT, 2000, XP and later operating systems.
 	 * 

@@ -18,7 +18,6 @@ import org.junit.Assert;
 import org.junit.Before;
 
 import com.sun.jna.Native;
-import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
 import com.sun.jna.WString;
 import com.sun.jna.platform.win32.Netapi32;
@@ -192,14 +191,6 @@ public abstract class BaseTest {
 			e.printStackTrace();
 			Assert.fail(String.format("Thread.sleep(%d) failed.", millis));
 		}
-	}
-
-	protected String hwndToString(final HWND hWnd) {
-		return StringUtils
-				.leftPad(
-						String.valueOf(
-								Long.toHexString(Pointer.nativeValue(hWnd
-										.getPointer()))).toUpperCase(), 8, '0');
 	}
 
 	protected String getTooltip(final String handle) {

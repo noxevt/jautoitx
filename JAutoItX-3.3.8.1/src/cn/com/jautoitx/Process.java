@@ -27,16 +27,16 @@ public class Process extends AutoItX {
 	public static final int PRIORITY_RELTIME = 5;
 
 	/* do not load the user profile */
-	public static final int RUN_OPTION_NOT_LOAD_USER_PROFILE = 0;
+	public static final int RUN_LOGON_FLAG_NOT_LOAD_USER_PROFILE = 0;
 
 	/* (default) load the user profile */
-	public static final int RUN_OPTION_LOAD_USER_PROFILE = 1;
+	public static final int RUN_LOGON_FLAG_LOAD_USER_PROFILE = 1;
 
 	/* use for net credentials only */
-	public static final int RUN_OPTION_USER_FOR_NET_CREDENTIALS_ONLY = 2;
+	public static final int RUN_LOGON_FLAG_USER_FOR_NET_CREDENTIALS_ONLY = 2;
 
 	/* (default) load the user profile */
-	public static final int RUN_OPTION_DEFAULT = RUN_OPTION_NOT_LOAD_USER_PROFILE;
+	public static final int RUN_LOGON_FLAG_DEFAULT = RUN_LOGON_FLAG_NOT_LOAD_USER_PROFILE;
 
 	/* Used for Process.runAsSet(String, String, String) */
 	private static AutoItXLibrary autoItX2;
@@ -219,8 +219,6 @@ public class Process extends AutoItX {
 	 * execution of the script until the spawned program has finished use the
 	 * RunWait function instead.
 	 * 
-	 * The error property is set to 1 as an indication of failure.
-	 * 
 	 * @param fileName
 	 *            The name of the executable (EXE, BAT, COM, or PIF) to run.
 	 * @return Return the PID of the process that was launched if success,
@@ -236,8 +234,6 @@ public class Process extends AutoItX {
 	 * After running the requested program the script continues. To pause
 	 * execution of the script until the spawned program has finished use the
 	 * RunWait function instead.
-	 * 
-	 * The error property is set to 1 as an indication of failure.
 	 * 
 	 * @param fileName
 	 *            The name of the executable (EXE, BAT, COM, or PIF) to run.
@@ -257,17 +253,15 @@ public class Process extends AutoItX {
 	 * execution of the script until the spawned program has finished use the
 	 * RunWait function instead.
 	 * 
-	 * The error property is set to 1 as an indication of failure.
-	 * 
 	 * @param fileName
 	 *            The name of the executable (EXE, BAT, COM, or PIF) to run.
-	 * @param showFlags
+	 * @param showFlag
 	 *            The "show" flag of the executed program.
 	 * @return Return the PID of the process that was launched if success,
 	 *         return null if failed.
 	 */
-	public static Integer run(final String fileName, final RunShowFlag showFlags) {
-		return run(fileName, null, showFlags);
+	public static Integer run(final String fileName, final RunShowFlag showFlag) {
+		return run(fileName, null, showFlag);
 	}
 
 	/**
@@ -276,22 +270,20 @@ public class Process extends AutoItX {
 	 * After running the requested program the script continues. To pause
 	 * execution of the script until the spawned program has finished use the
 	 * RunWait function instead.
-	 * 
-	 * The error property is set to 1 as an indication of failure.
 	 * 
 	 * @param fileName
 	 *            The name of the executable (EXE, BAT, COM, or PIF) to run.
 	 * @param workingDir
 	 *            The working directory.
-	 * @param showFlags
+	 * @param showFlag
 	 *            The "show" flag of the executed program.
 	 * @return Return the PID of the process that was launched if success,
 	 *         return null if failed.
 	 */
 	public static Integer run(final String fileName, final String workingDir,
-			final RunShowFlag showFlags) {
-		return run(fileName, workingDir, (Integer) ((showFlags == null) ? null
-				: showFlags.getShowFlag()));
+			final RunShowFlag showFlag) {
+		return run(fileName, workingDir, (Integer) ((showFlag == null) ? null
+				: showFlag.getShowFlag()));
 	}
 
 	/**
@@ -301,11 +293,9 @@ public class Process extends AutoItX {
 	 * execution of the script until the spawned program has finished use the
 	 * RunWait function instead.
 	 * 
-	 * The error property is set to 1 as an indication of failure.
-	 * 
 	 * @param fileName
 	 *            The name of the executable (EXE, BAT, COM, or PIF) to run.
-	 * @param showFlags
+	 * @param showFlag
 	 *            The "show" flag of the executed program:<br/>
 	 *            SW_HIDE = Hidden window<br/>
 	 *            SW_MINIMIZE = Minimized window<br/>
@@ -313,8 +303,8 @@ public class Process extends AutoItX {
 	 * @return Return the PID of the process that was launched if success,
 	 *         return null if failed.
 	 */
-	public static Integer run(final String fileName, final Integer showFlags) {
-		return run(fileName, null, showFlags);
+	public static Integer run(final String fileName, final Integer showFlag) {
+		return run(fileName, null, showFlag);
 	}
 
 	/**
@@ -324,13 +314,11 @@ public class Process extends AutoItX {
 	 * execution of the script until the spawned program has finished use the
 	 * RunWait function instead.
 	 * 
-	 * The error property is set to 1 as an indication of failure.
-	 * 
 	 * @param fileName
 	 *            The name of the executable (EXE, BAT, COM, or PIF) to run.
 	 * @param workingDir
 	 *            The working directory.
-	 * @param showFlags
+	 * @param showFlag
 	 *            The "show" flag of the executed program:<br/>
 	 *            SW_HIDE = Hidden window<br/>
 	 *            SW_MINIMIZE = Minimized window<br/>
@@ -339,12 +327,12 @@ public class Process extends AutoItX {
 	 *         return null if failed.
 	 */
 	public static Integer run(final String fileName, final String workingDir,
-			final Integer showFlags) {
+			final Integer showFlag) {
 		AutoItXLibrary autoItXLib = runAsDetailsSetted ? autoItX2 : autoItX;
 		final int pid = autoItXLib.AU3_Run(
 				stringToWString(defaultString(fileName)),
-				stringToWString(workingDir),
-				(showFlags == null) ? SW_SHOWNORMAL : showFlags);
+				stringToWString(workingDir), (showFlag == null) ? SW_SHOWNORMAL
+						: showFlag);
 		return (pid > 0) ? pid : null;
 	}
 
@@ -427,9 +415,13 @@ public class Process extends AutoItX {
 	 *         will fail....)
 	 */
 	public static boolean runAsSet(final String user, final String domain,
-			final String password, final RunAsSetOption options) {
-		return runAsSet(user, domain, password,
-				(Integer) ((options == null) ? null : options.getOption()));
+			final String password, final RunLogonFlag logonFlag) {
+		return runAsSet(
+				user,
+				domain,
+				password,
+				(Integer) ((logonFlag == null) ? null : logonFlag
+						.getLogonFlag()));
 	}
 
 	/**
@@ -491,12 +483,11 @@ public class Process extends AutoItX {
 	 * 
 	 * Some programs will appear to return immediately even though they are
 	 * still running; these programs spawn another process - you may be able to
-	 * use the ProcessWaitClose function to handle these cases.
+	 * use the Process.waitClose function to handle these cases.
 	 * 
 	 * @param fileName
 	 *            The name of the executable (EXE, BAT, COM, or PIF) to run.
-	 * @return Return the exit code of the program that was run, the error
-	 *         property is set to 1 as an indication of failure.
+	 * @return Return the exit code of the program that was run.
 	 */
 	public static RunWaitResult runWait(final String fileName) {
 		return runWait(fileName, (String) null);
@@ -512,14 +503,13 @@ public class Process extends AutoItX {
 	 * 
 	 * Some programs will appear to return immediately even though they are
 	 * still running; these programs spawn another process - you may be able to
-	 * use the ProcessWaitClose function to handle these cases.
+	 * use the Process.waitClose function to handle these cases.
 	 * 
 	 * @param fileName
 	 *            The name of the executable (EXE, BAT, COM, or PIF) to run.
 	 * @param workingDir
 	 *            The working directory.
-	 * @return Return the exit code of the program that was run, the error
-	 *         property is set to 1 as an indication of failure.
+	 * @return Return the exit code of the program that was run.
 	 */
 	public static RunWaitResult runWait(final String fileName,
 			final String workingDir) {
@@ -536,18 +526,17 @@ public class Process extends AutoItX {
 	 * 
 	 * Some programs will appear to return immediately even though they are
 	 * still running; these programs spawn another process - you may be able to
-	 * use the ProcessWaitClose function to handle these cases.
+	 * use the Process.waitClose function to handle these cases.
 	 * 
 	 * @param fileName
 	 *            The name of the executable (EXE, BAT, COM, or PIF) to run.
-	 * @param showFlags
+	 * @param showFlag
 	 *            The "show" flag of the executed program.
-	 * @return Return the exit code of the program that was run, the error
-	 *         property is set to 1 as an indication of failure.
+	 * @return Return the exit code of the program that was run.
 	 */
 	public static RunWaitResult runWait(final String fileName,
-			final RunShowFlag showFlags) {
-		return runWait(fileName, null, showFlags);
+			final RunShowFlag showFlag) {
+		return runWait(fileName, null, showFlag);
 	}
 
 	/**
@@ -560,23 +549,20 @@ public class Process extends AutoItX {
 	 * 
 	 * Some programs will appear to return immediately even though they are
 	 * still running; these programs spawn another process - you may be able to
-	 * use the ProcessWaitClose function to handle these cases.
+	 * use the Process.waitClose function to handle these cases.
 	 * 
 	 * @param fileName
 	 *            The name of the executable (EXE, BAT, COM, or PIF) to run.
 	 * @param workingDir
 	 *            The working directory.
-	 * @param showFlags
+	 * @param showFlag
 	 *            The "show" flag of the executed program.
-	 * @return Return the exit code of the program that was run, the error
-	 *         property is set to 1 as an indication of failure.
+	 * @return Return the exit code of the program that was run.
 	 */
 	public static RunWaitResult runWait(final String fileName,
-			final String workingDir, final RunShowFlag showFlags) {
-		return runWait(
-				fileName,
-				workingDir,
-				(Integer) ((showFlags == null) ? null : showFlags.getShowFlag()));
+			final String workingDir, final RunShowFlag showFlag) {
+		return runWait(fileName, workingDir,
+				(Integer) ((showFlag == null) ? null : showFlag.getShowFlag()));
 	}
 
 	/**
@@ -589,7 +575,7 @@ public class Process extends AutoItX {
 	 * 
 	 * Some programs will appear to return immediately even though they are
 	 * still running; these programs spawn another process - you may be able to
-	 * use the ProcessWaitClose function to handle these cases.
+	 * use the Process.waitClose function to handle these cases.
 	 * 
 	 * @param fileName
 	 *            The name of the executable (EXE, BAT, COM, or PIF) to run.
@@ -598,8 +584,7 @@ public class Process extends AutoItX {
 	 *            SW_HIDE = Hidden window<br/>
 	 *            SW_MINIMIZE = Minimized window<br/>
 	 *            SW_MAXIMIZE = Maximized window<br/>
-	 * @return Return the exit code of the program that was run, the error
-	 *         property is set to 1 as an indication of failure.
+	 * @return Return the exit code of the program that was run.
 	 */
 	public static RunWaitResult runWait(final String fileName,
 			final Integer flag) {
@@ -616,7 +601,7 @@ public class Process extends AutoItX {
 	 * 
 	 * Some programs will appear to return immediately even though they are
 	 * still running; these programs spawn another process - you may be able to
-	 * use the ProcessWaitClose function to handle these cases.
+	 * use the Process.waitClose function to handle these cases.
 	 * 
 	 * @param fileName
 	 *            The name of the executable (EXE, BAT, COM, or PIF) to run.
@@ -627,8 +612,7 @@ public class Process extends AutoItX {
 	 *            SW_HIDE = Hidden window<br/>
 	 *            SW_MINIMIZE = Minimized window<br/>
 	 *            SW_MAXIMIZE = Maximized window<br/>
-	 * @return Return the exit code of the program that was run, the error
-	 *         property is set to 1 as an indication of failure.
+	 * @return Return the exit code of the program that was run.
 	 */
 	public static RunWaitResult runWait(final String fileName,
 			final String workingDir, final Integer flag) {
@@ -804,7 +788,7 @@ public class Process extends AutoItX {
 	 * Process names are executables without the full path, e.g., "notepad.exe"
 	 * or "winword.exe" PID is the unique number which identifies a Process. A
 	 * PID can be obtained through the ProcessExists or Run commands. In order
-	 * to work under Windows NT 4.0, ProcessWaitClose requires the file
+	 * to work under Windows NT 4.0, Process.waitClose requires the file
 	 * PSAPI.DLL (included in the AutoIt installation directory). The process is
 	 * polled approximately every 250 milliseconds.
 	 * 
@@ -821,7 +805,7 @@ public class Process extends AutoItX {
 	 * Process names are executables without the full path, e.g., "notepad.exe"
 	 * or "winword.exe" PID is the unique number which identifies a Process. A
 	 * PID can be obtained through the ProcessExists or Run commands. In order
-	 * to work under Windows NT 4.0, ProcessWaitClose requires the file
+	 * to work under Windows NT 4.0, Process.waitClose requires the file
 	 * PSAPI.DLL (included in the AutoIt installation directory). The process is
 	 * polled approximately every 250 milliseconds.
 	 * 
@@ -838,7 +822,7 @@ public class Process extends AutoItX {
 	 * Process names are executables without the full path, e.g., "notepad.exe"
 	 * or "winword.exe" PID is the unique number which identifies a Process. A
 	 * PID can be obtained through the ProcessExists or Run commands. In order
-	 * to work under Windows NT 4.0, ProcessWaitClose requires the file
+	 * to work under Windows NT 4.0, Process.waitClose requires the file
 	 * PSAPI.DLL (included in the AutoIt installation directory). The process is
 	 * polled approximately every 250 milliseconds.
 	 * 
@@ -860,7 +844,7 @@ public class Process extends AutoItX {
 	 * Process names are executables without the full path, e.g., "notepad.exe"
 	 * or "winword.exe" PID is the unique number which identifies a Process. A
 	 * PID can be obtained through the ProcessExists or Run commands. In order
-	 * to work under Windows NT 4.0, ProcessWaitClose requires the file
+	 * to work under Windows NT 4.0, Process.waitClose requires the file
 	 * PSAPI.DLL (included in the AutoIt installation directory). The process is
 	 * polled approximately every 250 milliseconds.
 	 * 
@@ -938,32 +922,33 @@ public class Process extends AutoItX {
 	 * 
 	 * @author zhengbo.wang
 	 */
-	public static enum RunAsSetOption {
+	public static enum RunLogonFlag {
 		/* (default) load the user profile */
-		DEFAULT(RUN_OPTION_DEFAULT),
+		DEFAULT(RUN_LOGON_FLAG_DEFAULT),
 
 		/* do not load the user profile */
-		NOT_LOAD_USER_PROFILE(RUN_OPTION_NOT_LOAD_USER_PROFILE),
+		NOT_LOAD_USER_PROFILE(RUN_LOGON_FLAG_NOT_LOAD_USER_PROFILE),
 
 		/* (default) load the user profile */
-		LOAD_USER_PROFILE(RUN_OPTION_LOAD_USER_PROFILE),
+		LOAD_USER_PROFILE(RUN_LOGON_FLAG_LOAD_USER_PROFILE),
 
 		/* use for net credentials only */
-		USER_FOR_NET_CREDENTIALS_ONLY(RUN_OPTION_USER_FOR_NET_CREDENTIALS_ONLY);
+		USER_FOR_NET_CREDENTIALS_ONLY(
+				RUN_LOGON_FLAG_USER_FOR_NET_CREDENTIALS_ONLY);
 
-		private int option;
+		private int logonFlag;
 
-		private RunAsSetOption(final int option) {
-			this.option = option;
+		private RunLogonFlag(final int logonFlag) {
+			this.logonFlag = logonFlag;
 		}
 
-		public int getOption() {
-			return option;
+		public int getLogonFlag() {
+			return logonFlag;
 		}
 
 		@Override
 		public String toString() {
-			return String.valueOf(option);
+			return String.valueOf(logonFlag);
 		}
 	}
 

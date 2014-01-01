@@ -13,7 +13,6 @@ import com.sun.jna.platform.win32.WinDef.WPARAM;
 
 public class Control extends AutoItX {
 	public static int CONTROL_GET_FOCUS_BUF_ZIZE = 512;
-	public static int CONTROL_GET_HANDLE_BUF_ZIZE = 512;
 	public static int CONTROL_GET_TEXT_BUF_ZIZE = 8 * 1024;
 	public static int STATUSBAR_GET_TEXT_BUF_SIZE = 256;
 
@@ -455,7 +454,7 @@ public class Control extends AutoItX {
 	public static boolean isVisible(final String title, final String text,
 			final String control) {
 		return "1".equals(controlCommand(title, text, control,
-				CONTROL_COMMAND_IS_VISIBLE, null, BOOLEAN_VALUE_BUF_SIZE));
+				CONTROL_COMMAND_IS_VISIBLE, null, BOOLEAN_BUF_SIZE));
 	}
 
 	/**
@@ -530,8 +529,7 @@ public class Control extends AutoItX {
 			final String control) {
 		return String.valueOf(TRUE).equals(
 				controlCommand(title, text, control,
-						CONTROL_COMMAND_IS_ENABLED, null,
-						BOOLEAN_VALUE_BUF_SIZE));
+						CONTROL_COMMAND_IS_ENABLED, null, BOOLEAN_BUF_SIZE));
 	}
 
 	/**
@@ -1622,7 +1620,7 @@ public class Control extends AutoItX {
 	public static boolean isChecked(final String title, final String text,
 			final String control) {
 		return "1".equals(controlCommand(title, text, control,
-				CONTROL_COMMAND_IS_CHECKED, null, BOOLEAN_VALUE_BUF_SIZE));
+				CONTROL_COMMAND_IS_CHECKED, null, BOOLEAN_BUF_SIZE));
 	}
 
 	/**
@@ -1855,7 +1853,7 @@ public class Control extends AutoItX {
 	public static Integer getCurrentLine(final String title, final String text,
 			final String control) {
 		final String currentLine = controlCommand(title, text, control,
-				CONTROL_COMMAND_GET_CURRENT_LINE, null, INT_VALUE_BUF_SIZE);
+				CONTROL_COMMAND_GET_CURRENT_LINE, null, INT_BUF_SIZE);
 		if (!hasError() && StringUtils.isNotBlank(currentLine)) {
 			return NumberUtils.toInt(currentLine);
 		}
@@ -1939,7 +1937,7 @@ public class Control extends AutoItX {
 	public static Integer getCurrentCol(final String title, final String text,
 			final String control) {
 		final String currentCol = controlCommand(title, text, control,
-				CONTROL_COMMAND_GET_CURRENT_COL, null, INT_VALUE_BUF_SIZE);
+				CONTROL_COMMAND_GET_CURRENT_COL, null, INT_BUF_SIZE);
 		if (!hasError() && StringUtils.isNotBlank(currentCol)) {
 			return NumberUtils.toInt(currentCol);
 		}
@@ -2101,7 +2099,7 @@ public class Control extends AutoItX {
 	public static Integer getLineCount(final String title, final String text,
 			final String control) {
 		final String lineCount = controlCommand(title, text, control,
-				CONTROL_COMMAND_GET_LINE_COUNT, null, INT_VALUE_BUF_SIZE);
+				CONTROL_COMMAND_GET_LINE_COUNT, null, INT_BUF_SIZE);
 		if (!hasError() && StringUtils.isNotBlank(lineCount)) {
 			return NumberUtils.toInt(lineCount);
 		}
@@ -2450,7 +2448,7 @@ public class Control extends AutoItX {
 	public static Integer currentTab(final String title, final String text,
 			final String control) {
 		String currentTab = controlCommand(title, text, control,
-				CONTROL_COMMAND_CURRENT_TAB, null, INT_VALUE_BUF_SIZE);
+				CONTROL_COMMAND_CURRENT_TAB, null, INT_BUF_SIZE);
 		return hasError() ? null : NumberUtils.toInt(currentTab);
 	}
 
@@ -2957,8 +2955,7 @@ public class Control extends AutoItX {
 	 * @param title
 	 *            Title of window to check.
 	 * @return Returns ControlRef# of the control that has keyboard focus within
-	 *         a specified window, returns null and sets oAutoIt.error to 1 if
-	 *         window is not found.
+	 *         a specified window, returns null if window is not found.
 	 */
 	public static String getFocus(final String title) {
 		return getFocus(title, null);
@@ -2973,8 +2970,7 @@ public class Control extends AutoItX {
 	 * @param text
 	 *            Text from window to check.
 	 * @return Returns ControlRef# of the control that has keyboard focus within
-	 *         a specified window, returns null and sets oAutoIt.error to 1 if
-	 *         window is not found.
+	 *         a specified window, returns null if window is not found.
 	 */
 	public static String getFocus(final String title, final String text) {
 		final int bufSize = CONTROL_GET_FOCUS_BUF_ZIZE;
@@ -2992,8 +2988,7 @@ public class Control extends AutoItX {
 	 * @param hWnd
 	 *            Handle of window to check.
 	 * @return Returns ControlRef# of the control that has keyboard focus within
-	 *         a specified window, returns null and sets oAutoIt.error to 1 if
-	 *         window is not found.
+	 *         a specified window, returns null if window is not found.
 	 */
 	public static String getFocus(final HWND hWnd) {
 		return (hWnd == null) ? null : getFocus(buildTitle(hWnd));
@@ -3007,8 +3002,7 @@ public class Control extends AutoItX {
 	 * @param control
 	 *            The control to interact with.
 	 * @return Returns a string containing the control handle value, returns
-	 *         null and sets oAutoIt.error to 1 if no window matches the
-	 *         criteria.
+	 *         null if no window matches the criteria.
 	 */
 	public static String getHandle(final String title, final String control) {
 		return getHandle(title, null, control);
@@ -3024,16 +3018,14 @@ public class Control extends AutoItX {
 	 * @param control
 	 *            The control to interact with.
 	 * @return Returns a string containing the control handle value, returns
-	 *         null and sets oAutoIt.error to 1 if no window matches the
-	 *         criteria.
+	 *         null if no window matches the criteria.
 	 */
 	public static String getHandle(final String title, final String text,
 			final String control) {
-		final int bufSize = CONTROL_GET_HANDLE_BUF_ZIZE;
-		final CharBuffer retText = CharBuffer.allocate(bufSize);
+		final CharBuffer retText = CharBuffer.allocate(HANDLE_BUF_SIZE);
 		autoItX.AU3_ControlGetHandle(stringToWString(defaultString(title)),
 				stringToWString(text), stringToWString(defaultString(control)),
-				retText, bufSize);
+				retText, HANDLE_BUF_SIZE);
 
 		return hasError() ? null : Native.toString(retText.array());
 	}
@@ -3046,8 +3038,7 @@ public class Control extends AutoItX {
 	 * @param hCtrl
 	 *            The handle of the control to interact with.
 	 * @return Returns a string containing the control handle value, returns
-	 *         null and sets oAutoIt.error to 1 if no window matches the
-	 *         criteria.
+	 *         null if no window matches the criteria.
 	 */
 	public static String getHandle(final HWND hWnd, final HWND hCtrl) {
 		return ((hWnd == null) || (hCtrl == null)) ? null : getHandle(
@@ -3061,8 +3052,8 @@ public class Control extends AutoItX {
 	 *            The title of the window to read.
 	 * @param control
 	 *            The control to interact with.
-	 * @return Returns the handle of the control if success, returns null and
-	 *         sets oAutoIt.error to 1 if no window matches the criteria.
+	 * @return Returns the handle of the control if success, returns null if no
+	 *         window matches the criteria.
 	 */
 	public static HWND getHandle_(final String title, final String control) {
 		return getHandle_(title, null, control);
@@ -3077,8 +3068,8 @@ public class Control extends AutoItX {
 	 *            The text of the window to read.
 	 * @param control
 	 *            The control to interact with.
-	 * @return Returns the handle of the control if success, returns null and
-	 *         sets oAutoIt.error to 1 if no window matches the criteria.
+	 * @return Returns the handle of the control if success, returns null if no
+	 *         window matches the criteria.
 	 */
 	public static HWND getHandle_(final String title, final String text,
 			final String control) {
@@ -3092,8 +3083,8 @@ public class Control extends AutoItX {
 	 *            The handle of the window to read.
 	 * @param hCtrl
 	 *            The handle of the control to interact with.
-	 * @return Returns the handle of the control if success, returns null and
-	 *         sets oAutoIt.error to 1 if no window matches the criteria.
+	 * @return Returns the handle of the control if success, returns null if no
+	 *         window matches the criteria.
 	 */
 	public static HWND getHandle_(final HWND hWnd, final HWND hCtrl) {
 		return ((hWnd == null) || (hCtrl == null)) ? null : getHandle_(
@@ -3506,14 +3497,11 @@ public class Control extends AutoItX {
 	 * there two controls listed called "MDIClient", you would refer to these as
 	 * "MDIClient1" and "MDIClient2".
 	 * 
-	 * Note: if control dose not have text, AutoItX will still set oAutoIt.error
-	 * to 1.
-	 * 
 	 * @param title
 	 *            The title of the window to access.
 	 * @param controlId
 	 *            The control to interact with.
-	 * @return Returns text from a control if success, returns "" if failed.
+	 * @return Returns text from a control if success, returns null if failed.
 	 */
 	public static String getText(final String title, final String controlId) {
 		return getText(title, null, controlId);
@@ -3527,16 +3515,13 @@ public class Control extends AutoItX {
 	 * there two controls listed called "MDIClient", you would refer to these as
 	 * "MDIClient1" and "MDIClient2".
 	 * 
-	 * Note: if control dose not have text, AutoItX will still set oAutoIt.error
-	 * to 1.
-	 * 
 	 * @param title
 	 *            The title of the window to access.
 	 * @param text
 	 *            The text of the window to access.
 	 * @param controlId
 	 *            The control to interact with.
-	 * @return Returns text from a control if success, returns "" if failed.
+	 * @return Returns text from a control if success, returns null if failed.
 	 */
 	public static String getText(final String title, final String text,
 			final String controlId) {
@@ -3546,9 +3531,8 @@ public class Control extends AutoItX {
 				stringToWString(text),
 				stringToWString(defaultString(controlId)), controlText, bufSize);
 
-		// if control dose not have text, AutoItX will still set oAutoIt.error
-		// to 1
-		return Native.toString(controlText.array());
+		return hasError() ? Win32.getControlText(Control.getHandle_(title,
+				text, controlId)) : Native.toString(controlText.array());
 	}
 
 	/**
@@ -3559,14 +3543,11 @@ public class Control extends AutoItX {
 	 * there two controls listed called "MDIClient", you would refer to these as
 	 * "MDIClient1" and "MDIClient2".
 	 * 
-	 * Note: if control dose not have text, AutoItX will still set oAutoIt.error
-	 * to 1.
-	 * 
 	 * @param hWnd
 	 *            The handle of the window to access.
 	 * @param hCtrl
 	 *            The handle of the control to interact with.
-	 * @return Returns text from a control if success, returns "" if failed.
+	 * @return Returns text from a control if success, returns null if failed.
 	 */
 	public static String getText(final HWND hWnd, final HWND hCtrl) {
 		return ((hWnd == null) || (hCtrl == null)) ? null : getText(
