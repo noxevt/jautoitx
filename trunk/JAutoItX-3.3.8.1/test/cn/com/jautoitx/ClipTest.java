@@ -17,6 +17,9 @@ public class ClipTest extends BaseTest {
 
 		Clip.put("同一个世界，同一个梦想。");
 		Assert.assertEquals("同一个世界，同一个梦想。", Clip.get());
+
+		Clip.put("");
+		Assert.assertNull(Clip.get());
 	}
 
 	@Test

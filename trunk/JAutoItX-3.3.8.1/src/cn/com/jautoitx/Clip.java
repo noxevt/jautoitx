@@ -10,17 +10,14 @@ public class Clip extends AutoItX {
 	/**
 	 * Retrieves text from the clipboard.
 	 * 
-	 * Sets oAutoIt.error to 1 if clipboard is empty or contains a non-text
-	 * entry.
-	 * 
 	 * @return Returns a string containing the text on the clipboard, returns
-	 *         empty string if clipboard contains a non-text entry.
+	 *         null if clipboard contains a non-text entry.
 	 */
 	public static String get() {
 		final int bufSize = CLIP_GET_BUF_SIZE;
 		final CharBuffer clip = CharBuffer.allocate(bufSize);
 		autoItX.AU3_ClipGet(clip, bufSize);
-		return Native.toString(clip.array());
+		return hasError() ? null : Native.toString(clip.array());
 	}
 
 	/**

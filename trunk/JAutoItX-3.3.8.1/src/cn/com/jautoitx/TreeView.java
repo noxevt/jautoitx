@@ -528,7 +528,7 @@ public class TreeView extends AutoItX {
 	public static boolean exists(final String title, final String text,
 			final String control, final String item) {
 		return "1".equals(controlTreeView(title, text, control, COMMAND_EXISTS,
-				item, null, BOOLEAN_VALUE_BUF_SIZE));
+				item, null, BOOLEAN_BUF_SIZE));
 	}
 
 	/**
@@ -1088,7 +1088,7 @@ public class TreeView extends AutoItX {
 		Integer itemCount = null;
 		if (exists(title, text, control, item)) {
 			final String strItemCount = controlTreeView(title, text, control,
-					COMMAND_GET_ITEM_COUNT, item, null, INT_VALUE_BUF_SIZE);
+					COMMAND_GET_ITEM_COUNT, item, null, INT_BUF_SIZE);
 			if (!hasError()) {
 				itemCount = NumberUtils.toInt(strItemCount);
 			}
@@ -1241,7 +1241,7 @@ public class TreeView extends AutoItX {
 			final String control, final Boolean useIndex) {
 		final String selected = controlTreeView(title, text, control,
 				COMMAND_GET_SELECTED, (useIndex == null) ? null
-						: (useIndex ? "1" : null), null, INT_VALUE_BUF_SIZE);
+						: (useIndex ? "1" : null), null, INT_BUF_SIZE);
 		return hasError() ? null : selected;
 	}
 
@@ -1753,7 +1753,7 @@ public class TreeView extends AutoItX {
 		IsChecked isChecked = IsChecked.NOT_A_CHECKBOX;
 		if (StringUtils.isNotBlank(item)) {
 			String status = controlTreeView(title, text, control,
-					COMMAND_IS_CHECKED, item, null, INT_VALUE_BUF_SIZE);
+					COMMAND_IS_CHECKED, item, null, INT_BUF_SIZE);
 			if (String.valueOf(IsChecked.CHECKED.getStatus()).equals(status)) {
 				isChecked = IsChecked.CHECKED;
 			} else if (String.valueOf(IsChecked.UNCHECKED.getStatus()).equals(

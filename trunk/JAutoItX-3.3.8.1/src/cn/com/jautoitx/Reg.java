@@ -340,10 +340,7 @@ public class Reg extends AutoItX {
 	 *            The registry key to read.
 	 * @param valueName
 	 *            The value to read.
-	 * @return Return the requested registry value value if success, return ""
-	 *         and sets the oAutoIt.error flag: 1 if unable to open requested
-	 *         key, -1 if unable to open requested value, -2 if value type not
-	 *         supported if failed.
+	 * @return Return the RegReadResult object.
 	 */
 	public static RegReadResult read_(final String keyName,
 			final String valueName) {

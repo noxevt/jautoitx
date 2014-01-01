@@ -4,8 +4,11 @@ import java.awt.Color;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.sun.jna.platform.win32.WinDef.POINT;
+
 public class Pixel extends AutoItX {
 	public static final int INVALID_COLOR = -1;
+	public static final int DEFAULT_STEP = 1;
 
 	/**
 	 * Generates a checksum for a region of pixels.
@@ -65,7 +68,10 @@ public class Pixel extends AutoItX {
 	 * @return Returns the checksum value of the region.
 	 */
 	public static int checksum(final int left, final int top, final int right,
-			final int bottom, final Integer step) {
+			final int bottom, Integer step) {
+		if ((step == null) || (step <= 0)) {
+			step = DEFAULT_STEP;
+		}
 		return autoItX.AU3_PixelChecksum(left, top, right, bottom, step);
 	}
 
@@ -124,8 +130,7 @@ public class Pixel extends AutoItX {
 	 * @param color
 	 *            Colour value of pixel to find (in decimal or hex).
 	 * @return Return a 2 element array containing the pixel's coordinates if
-	 *         success, return null and sets oAutoIt.error to 1 if color is not
-	 *         found.
+	 *         success, return null if color is not found.
 	 */
 	public static int[] search(final int left, final int top, final int right,
 			final int bottom, final int color) {
@@ -150,8 +155,7 @@ public class Pixel extends AutoItX {
 	 *            shades of variation of the red, green, and blue components of
 	 *            the colour. Default is 0 (exact match).
 	 * @return Return a 2 element array containing the pixel's coordinates if
-	 *         success, return null and sets oAutoIt.error to 1 if color is not
-	 *         found.
+	 *         success, return null if color is not found.
 	 */
 	public static int[] search(final int left, final int top, final int right,
 			final int bottom, final int color, final Integer shadeVariation) {
@@ -180,14 +184,20 @@ public class Pixel extends AutoItX {
 	 *            skip pixels (for speed). E.g. A value of 2 will only check
 	 *            every other pixel. Default is 1.
 	 * @return Return a 2 element array containing the pixel's coordinates if
-	 *         success, return null and sets oAutoIt.error to 1 if color is not
-	 *         found.
+	 *         success, return null if color is not found.
 	 */
 	public static int[] search(final int left, final int top, final int right,
-			final int bottom, final int color, final Integer shadeVariation,
-			final Integer step) {
-		final LPPOINT pointResult = new LPPOINT();
-		int[] point = null;
+			final int bottom, final int color, Integer shadeVariation,
+			Integer step) {
+		final POINT point = new POINT();
+
+		if ((shadeVariation == null) || (shadeVariation < 0)
+				|| (shadeVariation > 255)) {
+			shadeVariation = 0;
+		}
+		if ((step == null) || (step <= 0)) {
+			step = DEFAULT_STEP;
+		}
 
 		// search has bug in AutoItX 3.3.8.1(if color is not found it
 		// will crash jvm when Native.isProtected() is false or throw
@@ -195,13 +205,14 @@ public class Pixel extends AutoItX {
 		// "Invalid memory access" when Native.isProtected() is true)
 		try {
 			autoItX.AU3_PixelSearch(left, top, right, bottom, color,
-					shadeVariation, step, pointResult);
-			point = hasError() ? null : new int[] { (int) pointResult.X,
-					(int) pointResult.Y };
+					shadeVariation, step, point);
+			if (!hasError()) {
+				return new int[] { point.x, point.y };
+			}
 		} catch (Error e) {
 			// Ignore
 		}
 
-		return point;
+		return null;
 	}
 }

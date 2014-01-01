@@ -51,7 +51,7 @@ public class DriveMapTest extends BaseTest {
 			Assert.assertEquals(drive3, drive);
 
 			// The device is already assigned
-			Assert.assertEquals("", DriveMap.add(drive,
+			Assert.assertNull(DriveMap.add(drive,
 					String.format("\\\\%s\\%s", getHostAddress(), netname),
 					DriveMapAddFlag.DEFAULT));
 			Assert.assertEquals(DriveMapAddError.DEVICE_ALREADY_ASSIGNED,
@@ -61,14 +61,14 @@ public class DriveMapTest extends BaseTest {
 			Assert.assertTrue(DriveMap.del(drive3));
 
 			// Undefined / Other error
-			Assert.assertEquals("", DriveMap.add(
+			Assert.assertNull(DriveMap.add(
 					String.format("\\\\xxxx.com\\%s", netname),
 					DriveMapAddFlag.DEFAULT));
 			Assert.assertEquals(DriveMapAddError.UNDEFINED,
 					DriveMap.getAddError());
 
 			// Invalid device name
-			Assert.assertEquals("", DriveMap.add("HelloDevice",
+			Assert.assertNull(DriveMap.add("HelloDevice",
 					String.format("\\\\%s\\%s", getHostAddress(), netname),
 					DriveMapAddFlag.DEFAULT));
 			Assert.assertEquals(DriveMapAddError.INVALID_DEVICE_NAME,
@@ -99,7 +99,7 @@ public class DriveMapTest extends BaseTest {
 	}
 
 	@Test
-	public void driveMapDel() {
+	public void del() {
 		long currentTimeMillis = System.currentTimeMillis();
 		File dir = new File("test/tmp" + currentTimeMillis);
 		String netname = "driveMapDel" + currentTimeMillis;
@@ -181,7 +181,7 @@ public class DriveMapTest extends BaseTest {
 	}
 
 	@Test
-	public void driveMapGet() {
+	public void get() {
 		long currentTimeMillis = System.currentTimeMillis();
 		File dir = new File("test/tmp" + currentTimeMillis);
 		String netname = "driveMapGet" + currentTimeMillis;
@@ -222,7 +222,7 @@ public class DriveMapTest extends BaseTest {
 			Assert.assertTrue(DriveMap.del(drive));
 
 			// get drive map
-			Assert.assertEquals("", DriveMap.get(drive));
+			Assert.assertNull(DriveMap.get(drive));
 			Assert.assertTrue(AutoItX.hasError());
 			Assert.assertEquals(
 					String.format("\\\\%s\\%s", getHostAddress(), netname),
@@ -230,9 +230,9 @@ public class DriveMapTest extends BaseTest {
 
 			// delete drive map
 			Assert.assertTrue(DriveMap.del(drive2));
-			Assert.assertEquals("", DriveMap.get(drive));
+			Assert.assertNull(DriveMap.get(drive));
 			Assert.assertTrue(AutoItX.hasError());
-			Assert.assertEquals("", DriveMap.get(drive2));
+			Assert.assertNull(DriveMap.get(drive2));
 			Assert.assertTrue(AutoItX.hasError());
 		} finally {
 			if (dir.exists()) {

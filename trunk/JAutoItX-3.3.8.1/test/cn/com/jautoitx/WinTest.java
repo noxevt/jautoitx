@@ -573,9 +573,11 @@ public class WinTest extends BaseTest {
 		HWND hWnd = Win.getHandle_(NOTEPAD_TITLE);
 		Assert.assertNotNull(hWnd);
 
-		assertEquals(hwndToString(User32.INSTANCE.GetForegroundWindow()),
+		assertEquals(
+				AutoItX.hwndToHandle(User32.INSTANCE.GetForegroundWindow()),
 				Win.getHandle(NOTEPAD_TITLE));
-		assertEquals(hwndToString(User32.INSTANCE.GetForegroundWindow()),
+		assertEquals(
+				AutoItX.hwndToHandle(User32.INSTANCE.GetForegroundWindow()),
 				Win.getHandle(hWnd));
 
 		// close notepad
@@ -620,7 +622,7 @@ public class WinTest extends BaseTest {
 
 		// minimize notepad
 		Assert.assertTrue(Win.minimize(NOTEPAD_TITLE));
-		Assert.assertTrue(Win.getPosX(NOTEPAD_TITLE) < 0);
+		Assert.assertNull(Win.getPosX(NOTEPAD_TITLE));
 
 		// restore notepad
 		Assert.assertTrue(Win.restore(NOTEPAD_TITLE));
@@ -673,7 +675,7 @@ public class WinTest extends BaseTest {
 
 		// minimize notepad
 		Assert.assertTrue(Win.minimize(NOTEPAD_TITLE));
-		Assert.assertTrue(Win.getPosY(NOTEPAD_TITLE) < 0);
+		Assert.assertNull(Win.getPosY(NOTEPAD_TITLE));
 
 		// restore notepad
 		Assert.assertTrue(Win.restore(NOTEPAD_TITLE));
@@ -723,7 +725,7 @@ public class WinTest extends BaseTest {
 
 		// minimize notepad
 		Assert.assertTrue(Win.minimize(NOTEPAD_TITLE));
-		Assert.assertTrue(Win.getHeight(NOTEPAD_TITLE) > 1);
+		Assert.assertNull(Win.getHeight(NOTEPAD_TITLE));
 
 		// restore notepad
 		Assert.assertTrue(Win.restore(NOTEPAD_TITLE));
@@ -774,7 +776,7 @@ public class WinTest extends BaseTest {
 
 		// minimize notepad
 		Assert.assertTrue(Win.minimize(NOTEPAD_TITLE));
-		Assert.assertTrue(Win.getWidth(NOTEPAD_TITLE) > 1);
+		Assert.assertNull(Win.getWidth(NOTEPAD_TITLE));
 
 		// restore notepad
 		Assert.assertTrue(Win.restore(NOTEPAD_TITLE));
@@ -997,14 +999,12 @@ public class WinTest extends BaseTest {
 
 		Assert.assertNull(Win.getTitle(NOTEPAD_TITLE + currentTimeMillis));
 		Assert.assertTrue(Win.setTitle(NOTEPAD_TITLE, "0"));
-		assertEquals("0", Win.getTitle(NOTEPAD_TITLE_START));
+		Assert.assertNull(Win.getTitle(NOTEPAD_TITLE_START));
 		assertEquals("0", Win.getTitle(""));
 		assertEquals("0", Win.getTitle((String) null));
 		String handle = Win.getHandle("0");
 		Assert.assertNotNull(handle);
 		Assert.assertTrue(Win.setTitle("0", ""));
-		assertEquals("", Win.getTitle(TitleBuilder.byHandle(handle)));
-		assertEquals("", Win.getTitle(TitleBuilder.byHandle(handle)));
 		assertEquals("", Win.getTitle(TitleBuilder.byHandle(handle)));
 
 		// close notepad

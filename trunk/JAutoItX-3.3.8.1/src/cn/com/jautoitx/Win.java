@@ -14,8 +14,6 @@ public final class Win extends AutoItX {
 	public static final String PROGRAM_MANAGER = "Program Manager";
 
 	public static int WIN_GET_CLASS_LIST_BUF_SIZE = 256;
-	public static int WIN_GET_HANDLE_BUF_SIZE = 9;
-	public static int WIN_GET_PROCESS_BUF_SIZE = 9;
 
 	/* Up to 64KB of window text can be retrieved */
 	public static int WIN_GET_TEXT_BUF_SIZE = 1024 * 1024;
@@ -701,15 +699,13 @@ public final class Win extends AutoItX {
 	 *         returns null if no window matches the criteria.
 	 */
 	public static String getHandle(final String title, final String text) {
-		final int bufSize = WIN_GET_HANDLE_BUF_SIZE;
-		final CharBuffer retText = CharBuffer.allocate(bufSize);
+		final CharBuffer retText = CharBuffer.allocate(HANDLE_BUF_SIZE);
 
-		// returns "" (blank string) and sets oAutoIt.error to 1 if no window
-		// matches the criteria
 		autoItX.AU3_WinGetHandle(stringToWString(defaultString(title)),
-				stringToWString(text), retText, bufSize);
+				stringToWString(text), retText, HANDLE_BUF_SIZE);
 
-		return hasError() ? null : Native.toString(retText.array());
+		return hasError() ? null : hwndToHandle(handleToHwnd(Native
+				.toString(retText.array())));
 	}
 
 	/**
@@ -739,8 +735,8 @@ public final class Win extends AutoItX {
 	 * 
 	 * @param title
 	 *            The title of the window to read.
-	 * @return Returns the handle of the window if success, returns null and
-	 *         sets oAutoIt.error to 1 if no window matches the criteria.
+	 * @return Returns the handle of the window if success, returns null if no
+	 *         window matches the criteria.
 	 */
 	public static HWND getHandle_(final String title) {
 		return getHandle_(title, null);
@@ -758,8 +754,8 @@ public final class Win extends AutoItX {
 	 *            The title of the window to read.
 	 * @param text
 	 *            The text of the window to read.
-	 * @return Returns the handle of the window if success, returns null and
-	 *         sets oAutoIt.error to 1 if no window matches the criteria.
+	 * @return Returns the handle of the window if success, returns null if no
+	 *         window matches the criteria.
 	 */
 	public static HWND getHandle_(final String title, final String text) {
 		return handleToHwnd(getHandle(title, text));
@@ -860,7 +856,7 @@ public final class Win extends AutoItX {
 	 */
 	public static Integer getPosX(final String title, final String text) {
 		Integer posX = null;
-		if (!Win.minimized(title, title)) {
+		if (!Win.minimized(title, text)) {
 			posX = autoItX.AU3_WinGetPosX(
 					stringToWString(defaultString(title)),
 					stringToWString(text));
@@ -924,7 +920,7 @@ public final class Win extends AutoItX {
 	 */
 	public static Integer getPosY(final String title, final String text) {
 		Integer posY = null;
-		if (!Win.minimized(title, title)) {
+		if (!Win.minimized(title, text)) {
 			posY = autoItX.AU3_WinGetPosY(
 					stringToWString(defaultString(title)),
 					stringToWString(text));
@@ -986,7 +982,7 @@ public final class Win extends AutoItX {
 	 */
 	public static Integer getHeight(final String title, final String text) {
 		Integer height = null;
-		if (!Win.minimized(title, title)) {
+		if (!Win.minimized(title, text)) {
 			height = autoItX.AU3_WinGetPosHeight(
 					stringToWString(defaultString(title)),
 					stringToWString(text));
@@ -1048,7 +1044,7 @@ public final class Win extends AutoItX {
 	 */
 	public static Integer getWidth(final String title, final String text) {
 		Integer width = null;
-		if (!Win.minimized(title, title)) {
+		if (!Win.minimized(title, text)) {
 			width = autoItX.AU3_WinGetPosWidth(
 					stringToWString(defaultString(title)),
 					stringToWString(text));
@@ -1097,10 +1093,9 @@ public final class Win extends AutoItX {
 	 * @return Returns the Process ID (PID) if success, return null if failed.
 	 */
 	public static Integer getProcess(final String title, final String text) {
-		final int bufSize = WIN_GET_PROCESS_BUF_SIZE;
-		final CharBuffer retText = CharBuffer.allocate(bufSize);
+		final CharBuffer retText = CharBuffer.allocate(INT_BUF_SIZE);
 		autoItX.AU3_WinGetProcess(stringToWString(defaultString(title)),
-				stringToWString(text), retText, bufSize);
+				stringToWString(text), retText, INT_BUF_SIZE);
 
 		int pid = NumberUtils.toInt(Native.toString(retText.array()), -1);
 		return (pid <= 0) ? null : pid;
@@ -1532,18 +1527,16 @@ public final class Win extends AutoItX {
 	 *         returns null if no title match.
 	 */
 	public static String getTitle(final String title, final String text) {
-		CharBuffer retText = CharBuffer.allocate(WIN_GET_TITLE_BUF_SIZE);
-		autoItX.AU3_WinGetTitle(stringToWString(defaultString(title)),
-				stringToWString(text), retText, WIN_GET_TITLE_BUF_SIZE);
+		if (Win.exists(title, text)) {
+			CharBuffer retText = CharBuffer.allocate(WIN_GET_TITLE_BUF_SIZE);
+			autoItX.AU3_WinGetTitle(stringToWString(defaultString(title)),
+					stringToWString(text), retText, WIN_GET_TITLE_BUF_SIZE);
 
-		// returns numeric 0 if no title match
-		String fullTitle = Native.toString(retText.array());
-		if ("0".equals(fullTitle)
-				&& (Win.getHandle(TitleBuilder.byTitle("0"), text) == null)) {
-			fullTitle = null;
+			if (!hasError()) {
+				return Native.toString(retText.array());
+			}
 		}
-
-		return fullTitle;
+		return null;
 	}
 
 	/**
@@ -2996,16 +2989,12 @@ public final class Win extends AutoItX {
 	/**
 	 * Sets the transparency of a window. (Requires Windows 2000/XP or later)
 	 * 
-	 * Non-zero on success, zero on failure. oAutoIt.error will be set to 1 if
-	 * the function isn't supported on an OS.
-	 * 
 	 * @param title
 	 *            The title of the window to change.
 	 * @param transparency
 	 *            A number in the range 0 - 255. The larger the number, the more
 	 *            transparent the window will become.
-	 * @return Returns true if success, returns false if failure. oAutoIt.error
-	 *         will be set to 1 if the function isn't supported on an OS.
+	 * @return Returns true if success, returns false if failure.
 	 */
 	public static boolean setTrans(final String title, final int transparency) {
 		return setTrans(title, null, transparency);
@@ -3021,8 +3010,7 @@ public final class Win extends AutoItX {
 	 * @param transparency
 	 *            A number in the range 0 - 255. The larger the number, the more
 	 *            transparent the window will become.
-	 * @return Returns true if success, returns false if failure. oAutoIt.error
-	 *         will be set to 1 if the function isn't supported on an OS.
+	 * @return Returns true if success, returns false if failure.
 	 */
 	public static boolean setTrans(final String title, final String text,
 			final int transparency) {
@@ -3038,8 +3026,7 @@ public final class Win extends AutoItX {
 	 * @param transparency
 	 *            A number in the range 0 - 255. The larger the number, the more
 	 *            transparent the window will become.
-	 * @return Returns true if success, returns false if failure. oAutoIt.error
-	 *         will be set to 1 if the function isn't supported on an OS.
+	 * @return Returns true if success, returns false if failure.
 	 */
 	public static boolean setTrans(final HWND hWnd, final int transparency) {
 		return (hWnd == null) ? false

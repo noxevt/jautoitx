@@ -1,17 +1,15 @@
 package cn.com.jautoitx;
 
+import java.io.Closeable;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.CharBuffer;
-import java.util.Arrays;
-import java.util.List;
+import java.util.logging.Logger;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
 
 import cn.com.jautoitx.Opt.CoordMode;
 
@@ -19,9 +17,9 @@ import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.Platform;
 import com.sun.jna.Pointer;
-import com.sun.jna.Structure;
 import com.sun.jna.WString;
 import com.sun.jna.platform.win32.WinDef.HWND;
+import com.sun.jna.platform.win32.WinDef.POINT;
 
 /**
  * 
@@ -29,9 +27,6 @@ import com.sun.jna.platform.win32.WinDef.HWND;
  * @author zhengbo.wang
  */
 public class AutoItX {
-	/* log4j's config file path */
-	public static String LOG4J_CONF_PATH = "conf/log4j.properties";
-
 	/* AutoItX's version */
 	private static String AUTOITX_VERSION = null;
 
@@ -96,9 +91,10 @@ public class AutoItX {
 	 */
 	public static final int SW_SHOWNORMAL = 1;
 
-	protected static int INT_VALUE_BUF_SIZE = String.valueOf(Integer.MIN_VALUE)
+	protected static int INT_BUF_SIZE = String.valueOf(Integer.MIN_VALUE)
 			.length();
-	protected static int BOOLEAN_VALUE_BUF_SIZE = 8;
+	protected static int BOOLEAN_BUF_SIZE = 8;
+	protected static int HANDLE_BUF_SIZE = 9;
 
 	/* AutoItX library name */
 	private static final String DLL_LIB_NAME = "AutoItX3"
@@ -107,7 +103,7 @@ public class AutoItX {
 	/* AutoItX library path */
 	private static final String DLL_LIB_RESOURCE_PATH = "/cn/com/jautoitx/lib/";
 
-	protected static final Logger logger = Logger.getLogger(AutoItX.class);
+	protected static final Logger logger = Logger.getAnonymousLogger();
 	protected static AutoItXLibrary autoItX;
 
 	protected static final int SUCCESS_RETURN_VALUE = 1;
@@ -123,27 +119,14 @@ public class AutoItX {
 	 * Initialize AutoItX.
 	 */
 	private static void initAutoItX() {
-		// Initialize log4j
-		try {
-			final File file = new File(LOG4J_CONF_PATH);
-			if (file.exists() && file.canRead()) {
-				System.setProperty("log4j.debug", "true");
-				PropertyConfigurator.configure(file.getAbsolutePath());
-			}
-		} catch (Exception e) {
-			logger.error("Unable to initialize log4j.", e);
-		}
-
 		// Initialize AutoItX
 		try {
 			autoItX = loadNativeLibrary();
 
-			if (logger.isDebugEnabled()) {
-				logger.debug("AutoItX initialized.");
-			}
+			logger.info("AutoItX initialized.");
 		} catch (Throwable e) {
-			logger.error(
-					"Unable to initialize " + AutoItX.class.getSimpleName(), e);
+			logger.warning("Unable to initialize "
+					+ AutoItX.class.getSimpleName());
 		}
 	}
 
@@ -174,8 +157,8 @@ public class AutoItX {
 			libFile.deleteOnExit();
 
 			// Copy AutoItX.dll or AutoItX_x64.dll library to the temp file.
-			FileUtils.copyInputStreamToFile(libInputStream, libFile);
-			IOUtils.closeQuietly(libInputStream);
+			copyInputStreamToFile(libInputStream, libFile);
+			closeQuietly(libInputStream);
 			if (AUTOITX_VERSION == null) {
 				AUTOITX_VERSION = Win32.getFileVersion(libFile);
 			}
@@ -311,11 +294,43 @@ public class AutoItX {
 		return ControlIdBuilder.byHandle(hCtrl);
 	}
 
-	public static HWND handleToHwnd(final String handle) {
+	protected static void closeQuietly(final Closeable closeable) {
+		if (closeable != null) {
+			try {
+				closeable.close();
+			} catch (IOException e) {
+				// Ignore exception
+			}
+		}
+	}
+
+	protected static void copyInputStreamToFile(final InputStream input,
+			final File file) throws IOException {
+		OutputStream output = null;
+		try {
+			output = new FileOutputStream(file);
+			long count = 0;
+			int n = 0;
+			byte[] buffer = new byte[4 * 1024];
+			while ((n = input.read(buffer)) != -1) {
+				output.write(buffer, 0, n);
+				count += n;
+			}
+		} finally {
+			closeQuietly(output);
+		}
+	}
+
+	public static HWND handleToHwnd(String handle) {
 		HWND hWnd = null;
 		try {
-			hWnd = (handle == null) ? null : new HWND(
-					Pointer.createConstant(Long.parseLong(handle, 16)));
+			if (handle != null) {
+				if (handle.startsWith("0x")) {
+					handle = handle.substring(2);
+				}
+				hWnd = new HWND(Pointer.createConstant(Long.parseLong(handle,
+						16)));
+			}
 		} catch (Exception e) {
 			// Ignore exception
 		}
@@ -323,24 +338,9 @@ public class AutoItX {
 	}
 
 	public static String hwndToHandle(final HWND hWnd) {
-		return (hWnd == null) ? null : Long.toHexString(Pointer
-				.nativeValue(hWnd.getPointer()));
-	}
-
-	/**
-	 * Containing the pixel's coordinates.
-	 * 
-	 * @author zhengbo.wang
-	 */
-	public static class LPPOINT extends Structure {
-		public int X = 0;
-		public int Y = 0;
-
-		@SuppressWarnings("rawtypes")
-		@Override
-		protected List getFieldOrder() {
-			return Arrays.asList("X", "Y");
-		}
+		return (hWnd == null) ? null : ("0x" + StringUtils.leftPad(Long
+				.toHexString(Pointer.nativeValue(hWnd.getPointer()))
+				.toUpperCase(), 8, '0'));
 	}
 
 	protected static interface AutoItXLibrary extends Library {
@@ -1492,13 +1492,12 @@ public class AutoItX {
 		 *            Instead of searching each pixel use a value larger than 1
 		 *            to skip pixels (for speed). E.g. A value of 2 will only
 		 *            check every other pixel. Default is 1.
-		 * @param pointResult
+		 * @param point
 		 *            Return the pixel's coordinates if success, sets
 		 *            oAutoIt.error to 1 if color is not found.
 		 */
 		public void AU3_PixelSearch(int left, int top, int right, int bottom,
-				int color, Integer shadeVariation, Integer step,
-				LPPOINT pointResult);
+				int color, Integer shadeVariation, Integer step, POINT point);
 
 		/**
 		 * Terminates a named process.
@@ -1790,7 +1789,7 @@ public class AutoItX {
 		 *            The name of the executable (EXE, BAT, COM, or PIF) to run.
 		 * @param workingDir
 		 *            The working directory.
-		 * @param showFlags
+		 * @param showFlag
 		 *            The "show" flag of the executed program:
 		 * 
 		 *            SW_HIDE = Hidden window
@@ -1802,7 +1801,7 @@ public class AutoItX {
 		 *         property is set to 1 as an indication of failure.
 		 */
 		public int AU3_Run(final WString fileName, final WString workingDir,
-				final Integer showFlags);
+				final Integer showFlag);
 
 		/**
 		 * Unset the RunAs details. 2000/XP or later ONLY.
@@ -1863,7 +1862,7 @@ public class AutoItX {
 		 *            The name of the executable (EXE, BAT, COM, or PIF) to run.
 		 * @param workingDir
 		 *            The working directory.
-		 * @param showFlags
+		 * @param showFlag
 		 *            The "show" flag of the executed program:
 		 * 
 		 *            SW_HIDE = Hidden window
@@ -1875,7 +1874,7 @@ public class AutoItX {
 		 *         property is set to 1 as an indication of failure.
 		 */
 		public int AU3_RunWait(final WString fileName,
-				final WString workingDir, final Integer showFlags);
+				final WString workingDir, final Integer showFlag);
 
 		/**
 		 * Sends simulated keystrokes to the active window.

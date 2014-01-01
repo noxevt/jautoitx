@@ -1,2 +1,9 @@
+01/01/2014 - 3.3.8.1-1.0.0-alpha2
+  1. Remove log4j.jar and commons-collections.jar, use JDK logger instead of log4j.
+  2. Clip.get() returns null if clipboard contains a non-text entry.
+  3. DriveMap.add() returns null if a new mapping could not be created.
+  4. DriveMap.get() returns null if failed.
+  5. Fixed bugs for Win.getPosX(), Win.getPosY(), Win.getWidth(), Win.getHeight().
+  
 14/12/2013 - 3.3.8.1-1.0.0-alpha
   First version.

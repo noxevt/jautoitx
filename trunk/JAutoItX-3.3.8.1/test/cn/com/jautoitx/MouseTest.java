@@ -580,7 +580,7 @@ public class MouseTest extends BaseTest {
 			// scroll down 5 times
 			for (int i = 0; i < 4; i++) {
 				Mouse.wheel(MouseWheelDirection.DOWN);
-				sleep(500);
+				sleep(1000);
 				Assert.assertEquals(i + 1, wheelCount.value);
 				Assert.assertEquals(0, wheelUpCount.value);
 				Assert.assertEquals(i + 1, wheelDownCount.value);
@@ -589,7 +589,7 @@ public class MouseTest extends BaseTest {
 			// scroll up 5 times
 			for (int i = 0; i < 4; i++) {
 				Mouse.wheel(MouseWheelDirection.UP);
-				sleep(500);
+				sleep(1000);
 
 				Assert.assertEquals(4 + (i + 1), wheelCount.value);
 				Assert.assertEquals(i + 1, wheelUpCount.value);
@@ -598,21 +598,21 @@ public class MouseTest extends BaseTest {
 
 			// scroll down
 			Assert.assertTrue(Mouse.wheel(Mouse.MOUSE_WHEEL_DIRECTION_DOWN));
-			sleep(500);
+			sleep(1000);
 			Assert.assertEquals(9, wheelCount.value);
 			Assert.assertEquals(4, wheelUpCount.value);
 			Assert.assertEquals(5, wheelDownCount.value);
 
 			// scroll up
 			Assert.assertTrue(Mouse.wheel(Mouse.MOUSE_WHEEL_DIRECTION_UP));
-			sleep(500);
+			sleep(1000);
 			Assert.assertEquals(10, wheelCount.value);
 			Assert.assertEquals(5, wheelUpCount.value);
 			Assert.assertEquals(5, wheelDownCount.value);
 
 			// scroll with invalid direction
 			Assert.assertFalse(Mouse.wheel("left"));
-			sleep(500);
+			sleep(1000);
 			Assert.assertEquals(10, wheelCount.value);
 			Assert.assertEquals(5, wheelUpCount.value);
 			Assert.assertEquals(5, wheelDownCount.value);

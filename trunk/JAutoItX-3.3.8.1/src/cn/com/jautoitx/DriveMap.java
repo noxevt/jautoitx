@@ -34,12 +34,11 @@ public class DriveMap extends AutoItX {
 	 * @param share
 	 *            The remote share to connect to in the form "\\server\share".
 	 * @param driveMapAddFlag
-	 * @return Returns "" if a new mapping could not be created and sets
-	 *         oAutoIt.error (see driveMapAddError() method). Returns "" if you
-	 *         pass a blank string for device parameter(a connection will made
-	 *         but not mapped to a specific drive). When using "*" for the
-	 *         device parameter the drive letter selected will be returned, e.g.
-	 *         "U:".
+	 * @return Returns null if a new mapping could not be created(see
+	 *         getAddError() method). Returns "" if you pass a blank string for
+	 *         device parameter(a connection will made but not mapped to a
+	 *         specific drive). When using "*" for the device parameter the
+	 *         drive letter selected will be returned, e.g. "U:".
 	 */
 	public static String add(final String share,
 			final DriveMapAddFlag driveMapAddFlag) {
@@ -71,12 +70,11 @@ public class DriveMap extends AutoItX {
 	 * @param share
 	 *            The remote share to connect to in the form "\\server\share".
 	 * @param driveMapAddFlags
-	 * @return Returns "" if a new mapping could not be created and sets
-	 *         oAutoIt.error (see driveMapAddError() method). Returns "" if you
-	 *         pass a blank string for device parameter(a connection will made
-	 *         but not mapped to a specific drive). When using "*" for the
-	 *         device parameter the drive letter selected will be returned, e.g.
-	 *         "U:".
+	 * @return Returns null if a new mapping could not be created(see
+	 *         getAddError() method). Returns "" if you pass a blank string for
+	 *         device parameter(a connection will made but not mapped to a
+	 *         specific drive). When using "*" for the device parameter the
+	 *         drive letter selected will be returned, e.g. "U:".
 	 */
 	public static String add(final String share,
 			final DriveMapAddFlag[] driveMapAddFlags) {
@@ -113,12 +111,11 @@ public class DriveMap extends AutoItX {
 	 * @param share
 	 *            The remote share to connect to in the form "\\server\share".
 	 * @param driveMapAddFlag
-	 * @return Returns "" if a new mapping could not be created and sets
-	 *         oAutoIt.error (see driveMapAddError() method). Returns "" if you
-	 *         pass a blank string for device parameter(a connection will made
-	 *         but not mapped to a specific drive). When using "*" for the
-	 *         device parameter the drive letter selected will be returned, e.g.
-	 *         "U:".
+	 * @return Returns null if a new mapping could not be created(see
+	 *         getAddError() method). Returns "" if you pass a blank string for
+	 *         device parameter(a connection will made but not mapped to a
+	 *         specific drive). When using "*" for the device parameter the
+	 *         drive letter selected will be returned, e.g. "U:".
 	 */
 	public static String add(final String device, final String share,
 			final DriveMapAddFlag driveMapAddFlag) {
@@ -158,12 +155,11 @@ public class DriveMap extends AutoItX {
 	 * @param user
 	 *            The username to use to connect. In the form "username" or
 	 *            "domain\Username".
-	 * @return Returns "" if a new mapping could not be created and sets
-	 *         oAutoIt.error (see driveMapAddError() method). Returns "" if you
-	 *         pass a blank string for device parameter(a connection will made
-	 *         but not mapped to a specific drive). When using "*" for the
-	 *         device parameter the drive letter selected will be returned, e.g.
-	 *         "U:".
+	 * @return Returns null if a new mapping could not be created(see
+	 *         getAddError() method). Returns "" if you pass a blank string for
+	 *         device parameter(a connection will made but not mapped to a
+	 *         specific drive). When using "*" for the device parameter the
+	 *         drive letter selected will be returned, e.g. "U:".
 	 */
 	public static String add(final String device, final String share,
 			final DriveMapAddFlag[] driveMapAddFlags) {
@@ -203,12 +199,11 @@ public class DriveMap extends AutoItX {
 	 * @param user
 	 *            The username to use to connect. In the form "username" or
 	 *            "domain\Username".
-	 * @return Returns "" if a new mapping could not be created and sets
-	 *         oAutoIt.error (see driveMapAddError() method). Returns "" if you
-	 *         pass a blank string for device parameter(a connection will made
-	 *         but not mapped to a specific drive). When using "*" for the
-	 *         device parameter the drive letter selected will be returned, e.g.
-	 *         "U:".
+	 * @return Returns null if a new mapping could not be created(see
+	 *         getAddError() method). Returns "" if you pass a blank string for
+	 *         device parameter(a connection will made but not mapped to a
+	 *         specific drive). When using "*" for the device parameter the
+	 *         drive letter selected will be returned, e.g. "U:".
 	 */
 	public static String add(final String device, final String share,
 			final DriveMapAddFlag driveMapAddFlag, final String user) {
@@ -248,12 +243,11 @@ public class DriveMap extends AutoItX {
 	 * @param user
 	 *            The username to use to connect. In the form "username" or
 	 *            "domain\Username".
-	 * @return Returns "" if a new mapping could not be created and sets
-	 *         oAutoIt.error (see driveMapAddError() method). Returns "" if you
-	 *         pass a blank string for device parameter(a connection will made
-	 *         but not mapped to a specific drive). When using "*" for the
-	 *         device parameter the drive letter selected will be returned, e.g.
-	 *         "U:".
+	 * @return Returns null if a new mapping could not be created(see
+	 *         getAddError() method). Returns "" if you pass a blank string for
+	 *         device parameter(a connection will made but not mapped to a
+	 *         specific drive). When using "*" for the device parameter the
+	 *         drive letter selected will be returned, e.g. "U:".
 	 */
 	public static String add(final String device, final String share,
 			final DriveMapAddFlag[] driveMapAddFlags, final String user) {
@@ -295,12 +289,11 @@ public class DriveMap extends AutoItX {
 	 *            "domain\Username".
 	 * @param password
 	 *            The password to use to connect.
-	 * @return Returns "" if a new mapping could not be created and sets
-	 *         oAutoIt.error (see driveMapAddError() method). Returns "" if you
-	 *         pass a blank string for device parameter(a connection will made
-	 *         but not mapped to a specific drive). When using "*" for the
-	 *         device parameter the drive letter selected will be returned, e.g.
-	 *         "U:".
+	 * @return Returns null if a new mapping could not be created(see
+	 *         getAddError() method). Returns "" if you pass a blank string for
+	 *         device parameter(a connection will made but not mapped to a
+	 *         specific drive). When using "*" for the device parameter the
+	 *         drive letter selected will be returned, e.g. "U:".
 	 */
 	public static String add(final String device, final String share,
 			final DriveMapAddFlag driveMapAddFlag, final String user,
@@ -344,13 +337,12 @@ public class DriveMap extends AutoItX {
 	 *            "domain\Username".
 	 * @param password
 	 *            The password to use to connect.
-	 * @return Returns "" if a new mapping could not be created and sets
-	 *         oAutoIt.error (see driveMapAddError() method). Returns "" if you
-	 *         pass a blank string for device parameter(a connection will made
-	 *         but not mapped to a specific drive). When using "*" for the
-	 *         device parameter the drive letter selected will be returned, e.g.
-	 *         "U:".
-	 * @see #driveMapAddError()
+	 * @return Returns null if a new mapping could not be created(see
+	 *         getAddError() method). Returns "" if you pass a blank string for
+	 *         device parameter(a connection will made but not mapped to a
+	 *         specific drive). When using "*" for the device parameter the
+	 *         drive letter selected will be returned, e.g. "U:".
+	 * @see #getAddError()
 	 */
 	public static String add(String device, final String share,
 			final DriveMapAddFlag[] driveMapAddFlags, final String user,
@@ -375,7 +367,7 @@ public class DriveMap extends AutoItX {
 				stringToWString(defaultString(password)), result, bufSize);
 
 		if (hasError()) {
-			return "";
+			return null;
 		} else if (StringUtils.isBlank(device)) {
 			// If you pass a blank string for this parameter a connection is
 			// made but not mapped to a specific drive.
@@ -442,8 +434,8 @@ public class DriveMap extends AutoItX {
 	 * @param device
 	 *            The device (drive or printer) letter to query. Eg. "O:" or
 	 *            "LPT1:"
-	 * @return Return details of the mapping, e.g. \\server\share, return a
-	 *         blank string "" and sets oAutoIt.error to 1.
+	 * @return Returns details of the mapping, e.g. \\server\share if success,
+	 *         returns null if failed..
 	 */
 	public static String get(final String device) {
 		return get(device, -1);
@@ -457,8 +449,8 @@ public class DriveMap extends AutoItX {
 	 *            "LPT1:"
 	 * @param bufSize
 	 *            Buffer size to the mapping.
-	 * @return Return details of the mapping, e.g. \\server\share, return a
-	 *         blank string "" and sets oAutoIt.error to 1.
+	 * @return Returns details of the mapping, e.g. \\server\share if success,
+	 *         returns null if failed.
 	 */
 	public static String get(final String device, int bufSize) {
 		if (bufSize <= 0) {
@@ -468,7 +460,7 @@ public class DriveMap extends AutoItX {
 		autoItX.AU3_DriveMapGet(stringToWString(defaultString(device)),
 				mapping, bufSize);
 
-		return hasError() ? "" : Native.toString(mapping.array());
+		return hasError() ? null : Native.toString(mapping.array());
 	}
 
 	public static enum DriveMapAddFlag {

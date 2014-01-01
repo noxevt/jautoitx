@@ -235,7 +235,7 @@ public final class ListView extends AutoItX {
 			final Integer subItem) {
 		final String itemIndex = controlListView(title, text, control,
 				LIST_VIEW_FIND_ITEM, stringToFind, (subItem == null) ? null
-						: subItem.toString(), INT_VALUE_BUF_SIZE);
+						: subItem.toString(), INT_BUF_SIZE);
 		int index = NumberUtils.toInt(itemIndex, -1);
 		return (hasError() || index < 0) ? null : index;
 	}
@@ -287,7 +287,7 @@ public final class ListView extends AutoItX {
 	public static Integer getItemCount(final String title, final String text,
 			final String control) {
 		final String itemCount = controlListView(title, text, control,
-				LIST_VIEW_GET_ITEM_COUNT, null, null, INT_VALUE_BUF_SIZE);
+				LIST_VIEW_GET_ITEM_COUNT, null, null, INT_BUF_SIZE);
 		return hasError() ? null : NumberUtils.toInt(itemCount);
 	}
 
@@ -402,7 +402,7 @@ public final class ListView extends AutoItX {
 		// returned
 		String result = controlListView(title, text, control,
 				LIST_VIEW_GET_SELECTED, getAllSelected ? "1" : "0", null,
-				INT_VALUE_BUF_SIZE);
+				INT_BUF_SIZE);
 		if (!hasError()) {
 			String[] strItems = StringUtils.split(result, "|");
 			items = new int[strItems.length];
@@ -466,7 +466,7 @@ public final class ListView extends AutoItX {
 	public static Integer getSelectedCount(final String title,
 			final String text, final String control) {
 		final String selectedCount = controlListView(title, text, control,
-				LIST_VIEW_GET_SELECTED_COUNT, null, null, INT_VALUE_BUF_SIZE);
+				LIST_VIEW_GET_SELECTED_COUNT, null, null, INT_BUF_SIZE);
 		return hasError() ? null : NumberUtils.toInt(selectedCount);
 	}
 
@@ -515,7 +515,7 @@ public final class ListView extends AutoItX {
 	public static Integer getSubItemCount(final String title,
 			final String text, final String control) {
 		final String subItemCount = controlListView(title, text, control,
-				LIST_VIEW_GET_SUB_ITEM_COUNT, null, null, INT_VALUE_BUF_SIZE);
+				LIST_VIEW_GET_SUB_ITEM_COUNT, null, null, INT_BUF_SIZE);
 		return hasError() ? null : NumberUtils.toInt(subItemCount);
 	}
 
@@ -730,7 +730,7 @@ public final class ListView extends AutoItX {
 			final String control, final int item) {
 		return "1".equals(controlListView(title, text, control,
 				LIST_VIEW_IS_SELECTED, String.valueOf(item), null,
-				BOOLEAN_VALUE_BUF_SIZE));
+				BOOLEAN_BUF_SIZE));
 	}
 
 	/**

@@ -6,8 +6,6 @@ import java.nio.CharBuffer;
 
 import org.apache.commons.lang3.StringUtils;
 
-import cn.com.jautoitx.AutoItX.LPPOINT;
-
 import com.sun.jna.Memory;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
@@ -26,8 +24,10 @@ public class Win32 {
 	public static final GDI32Ext gdi32 = GDI32Ext.INSTANCE;
 	public static final User32Ext user32 = User32Ext.INSTANCE;
 	public static final Version version = Version.INSTANCE;
-
 	public static final int INVALID_CONTROL_ID = -1;
+
+	private static final int WM_GETTEXT = 0x000D;
+	private static final int WM_GETTEXTLENGTH = 0x000E;
 
 	public static String getClassName(final String title, final String control) {
 		return getClassName(title, null, control);
@@ -85,6 +85,23 @@ public class Win32 {
 			controlId = INVALID_CONTROL_ID;
 		}
 		return controlId;
+	}
+
+	public static String getControlText(HWND hCtrl) {
+		String text = null;
+		if (isHWnd(hCtrl)) {
+			int textLength = user32.SendMessage(hCtrl, WM_GETTEXTLENGTH, 0, 0);
+			if (textLength == 0) {
+				text = "";
+			} else {
+				char[] lpText = new char[textLength + 1];
+				if (textLength == user32.SendMessage(hCtrl, WM_GETTEXT,
+						lpText.length, lpText)) {
+					text = new String(lpText, 0, textLength);
+				}
+			}
+		}
+		return text;
 	}
 
 	/**
@@ -159,7 +176,7 @@ public class Win32 {
 		return fileVersion;
 	}
 
-	public static String getText(HWND hWnd) {
+	public static String getWindowText(HWND hWnd) {
 		String text = null;
 		if (isHWnd(hWnd)) {
 			int textLength = user32.GetWindowTextLength(hWnd);
@@ -414,6 +431,8 @@ public class Win32 {
 
 		int SendMessage(HWND hWnd, int msg, int wParam, boolean lParam);
 
+		int SendMessage(HWND hWnd, int msg, int wParam, char[] lParam);
+
 		HANDLE SendMessage(HWND hWnd, int msg, int wParam, HANDLE lParam);
 
 		int SendMessage(HWND hWnd, int msg, HANDLE wParam, boolean lParam);
@@ -542,6 +561,6 @@ public class Win32 {
 
 		boolean SetWindowText(HWND hWnd, String text);
 
-		boolean ScreenToClient(HWND hWnd, LPPOINT point);
+		boolean ScreenToClient(HWND hWnd, POINT point);
 	}
 }
