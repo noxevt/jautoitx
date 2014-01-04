@@ -8,7 +8,7 @@ public class Misc extends AutoItX {
 	 *         0 if user lacks admin privileges.
 	 */
 	public static boolean isAdmin() {
-		return autoItX.AU3_IsAdmin() == SUCCESS_RETURN_VALUE;
+		return getAutoItX().AU3_IsAdmin() == SUCCESS_RETURN_VALUE;
 	}
 
 	/**
@@ -20,6 +20,6 @@ public class Misc extends AutoItX {
 	 *            Amount of time to pause (in milliseconds).
 	 */
 	public static void sleep(final int milliSeconds) {
-		autoItX.AU3_Sleep(milliSeconds);
+		getAutoItX().AU3_Sleep(milliSeconds);
 	}
 }

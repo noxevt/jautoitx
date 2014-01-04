@@ -403,8 +403,9 @@ public class Control extends AutoItX {
 			x = null;
 		}
 
-		return autoItX.AU3_ControlClick(stringToWString(defaultString(title)),
-				stringToWString(text), stringToWString(defaultString(control)),
+		return getAutoItX().AU3_ControlClick(
+				stringToWString(defaultString(title)), stringToWString(text),
+				stringToWString(defaultString(control)),
 				stringToWString(defaultString(button)), numClicks, x, y) == SUCCESS_RETURN_VALUE;
 	}
 
@@ -2760,7 +2761,7 @@ public class Control extends AutoItX {
 		}
 
 		final CharBuffer result = CharBuffer.allocate(bufSize);
-		autoItX.AU3_ControlCommand(stringToWString(defaultString(title)),
+		getAutoItX().AU3_ControlCommand(stringToWString(defaultString(title)),
 				stringToWString(text), stringToWString(defaultString(control)),
 				stringToWString(defaultString(command)),
 				stringToWString(defaultString(extra)), result, bufSize);
@@ -2804,7 +2805,7 @@ public class Control extends AutoItX {
 	 */
 	public static boolean disable(final String title, final String text,
 			final String control) {
-		return autoItX.AU3_ControlDisable(
+		return getAutoItX().AU3_ControlDisable(
 				stringToWString(defaultString(title)), stringToWString(text),
 				stringToWString(defaultString(control))) == SUCCESS_RETURN_VALUE;
 	}
@@ -2866,8 +2867,9 @@ public class Control extends AutoItX {
 	 */
 	public static boolean enable(final String title, final String text,
 			final String control) {
-		return autoItX.AU3_ControlEnable(stringToWString(defaultString(title)),
-				stringToWString(text), stringToWString(defaultString(control))) == SUCCESS_RETURN_VALUE;
+		return getAutoItX().AU3_ControlEnable(
+				stringToWString(defaultString(title)), stringToWString(text),
+				stringToWString(defaultString(control))) == SUCCESS_RETURN_VALUE;
 	}
 
 	/**
@@ -2926,8 +2928,9 @@ public class Control extends AutoItX {
 	 */
 	public static boolean focus(final String title, final String text,
 			final String control) {
-		return autoItX.AU3_ControlFocus(stringToWString(defaultString(title)),
-				stringToWString(text), stringToWString(defaultString(control))) == SUCCESS_RETURN_VALUE;
+		return getAutoItX().AU3_ControlFocus(
+				stringToWString(defaultString(title)), stringToWString(text),
+				stringToWString(defaultString(control))) == SUCCESS_RETURN_VALUE;
 	}
 
 	/**
@@ -2976,7 +2979,7 @@ public class Control extends AutoItX {
 	public static String getFocus(final String title, final String text) {
 		final int bufSize = CONTROL_GET_FOCUS_BUF_ZIZE;
 		final CharBuffer controlWithFocus = CharBuffer.allocate(bufSize);
-		autoItX.AU3_ControlGetFocus(stringToWString(defaultString(title)),
+		getAutoItX().AU3_ControlGetFocus(stringToWString(defaultString(title)),
 				stringToWString(text), controlWithFocus, bufSize);
 
 		return hasError() ? null : Native.toString(controlWithFocus.array());
@@ -3024,7 +3027,7 @@ public class Control extends AutoItX {
 	public static String getHandle(final String title, final String text,
 			final String control) {
 		final CharBuffer retText = CharBuffer.allocate(HANDLE_BUF_SIZE);
-		autoItX.AU3_ControlGetHandleAsText(
+		getAutoItX().AU3_ControlGetHandleAsText(
 				stringToWString(defaultString(title)), stringToWString(text),
 				stringToWString(defaultString(control)), retText,
 				HANDLE_BUF_SIZE);
@@ -3132,7 +3135,7 @@ public class Control extends AutoItX {
 	public static int[] getPos(final String title, final String text,
 			final String control) {
 		RECT rect = new RECT();
-		autoItX.AU3_ControlGetPos(stringToWString(defaultString(title)),
+		getAutoItX().AU3_ControlGetPos(stringToWString(defaultString(title)),
 				stringToWString(text), stringToWString(defaultString(control)),
 				rect);
 
@@ -3450,7 +3453,7 @@ public class Control extends AutoItX {
 	public static int[] getSize(final String title, final String text,
 			final String control) {
 		RECT rect = new RECT();
-		autoItX.AU3_ControlGetPos(stringToWString(defaultString(title)),
+		getAutoItX().AU3_ControlGetPos(stringToWString(defaultString(title)),
 				stringToWString(text), stringToWString(defaultString(control)),
 				rect);
 
@@ -3516,9 +3519,11 @@ public class Control extends AutoItX {
 			final String controlId) {
 		final int bufSize = CONTROL_GET_TEXT_BUF_ZIZE;
 		final CharBuffer controlText = CharBuffer.allocate(bufSize);
-		autoItX.AU3_ControlGetText(stringToWString(defaultString(title)),
-				stringToWString(text),
-				stringToWString(defaultString(controlId)), controlText, bufSize);
+		getAutoItX()
+				.AU3_ControlGetText(stringToWString(defaultString(title)),
+						stringToWString(text),
+						stringToWString(defaultString(controlId)), controlText,
+						bufSize);
 
 		return hasError() ? Win32.getControlText(Control.getHandle_(title,
 				text, controlId)) : Native.toString(controlText.array());
@@ -3581,8 +3586,8 @@ public class Control extends AutoItX {
 	 */
 	public static boolean hide(final String title, final String text,
 			final String controlId) {
-		return autoItX.AU3_ControlHide(stringToWString(defaultString(title)),
-				stringToWString(text),
+		return getAutoItX().AU3_ControlHide(
+				stringToWString(defaultString(title)), stringToWString(text),
 				stringToWString(defaultString(controlId))) == SUCCESS_RETURN_VALUE;
 	}
 
@@ -3743,9 +3748,9 @@ public class Control extends AutoItX {
 		if ((height == null) || (height < 0)) {
 			height = getHeight(title, text, control);
 		}
-		return autoItX.AU3_ControlMove(stringToWString(defaultString(title)),
-				stringToWString(text), stringToWString(defaultString(control)),
-				x, y, width, height) == SUCCESS_RETURN_VALUE;
+		return getAutoItX().AU3_ControlMove(
+				stringToWString(defaultString(title)), stringToWString(text),
+				stringToWString(defaultString(control)), x, y, width, height) == SUCCESS_RETURN_VALUE;
 	}
 
 	/**
@@ -3927,8 +3932,9 @@ public class Control extends AutoItX {
 		// indicate SHIFT and {LEFT} to indicate left arrow.
 		//
 		// flag = 1, keys are sent raw.
-		return autoItX.AU3_ControlSend(stringToWString(defaultString(title)),
-				stringToWString(text), stringToWString(defaultString(control)),
+		return getAutoItX().AU3_ControlSend(
+				stringToWString(defaultString(title)), stringToWString(text),
+				stringToWString(defaultString(control)),
 				stringToWString(defaultString(sendText)),
 				(sendRawText == null) ? null : (sendRawText ? 1 : 0)) == SUCCESS_RETURN_VALUE;
 	}
@@ -4009,7 +4015,7 @@ public class Control extends AutoItX {
 	 */
 	public static boolean setText(final String title, final String text,
 			final String controlId, final String controlText) {
-		return autoItX.AU3_ControlSetText(
+		return getAutoItX().AU3_ControlSetText(
 				stringToWString(defaultString(title)), stringToWString(text),
 				stringToWString(defaultString(controlId)),
 				stringToWString(defaultString(controlText))) == SUCCESS_RETURN_VALUE;
@@ -4076,8 +4082,8 @@ public class Control extends AutoItX {
 	 */
 	public static boolean show(final String title, final String text,
 			final String controlId) {
-		return autoItX.AU3_ControlShow(stringToWString(defaultString(title)),
-				stringToWString(text),
+		return getAutoItX().AU3_ControlShow(
+				stringToWString(defaultString(title)), stringToWString(text),
 				stringToWString(defaultString(controlId))) == SUCCESS_RETURN_VALUE;
 	}
 
@@ -4213,8 +4219,9 @@ public class Control extends AutoItX {
 			final String text, final Integer part) {
 		final int bufSize = STATUSBAR_GET_TEXT_BUF_SIZE;
 		final CharBuffer statusText = CharBuffer.allocate(bufSize);
-		autoItX.AU3_StatusbarGetText(stringToWString(defaultString(title)),
-				stringToWString(text), part, statusText, bufSize);
+		getAutoItX().AU3_StatusbarGetText(
+				stringToWString(defaultString(title)), stringToWString(text),
+				part, statusText, bufSize);
 
 		return hasError() ? null : Native.toString(statusText.array());
 	}

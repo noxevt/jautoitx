@@ -361,7 +361,7 @@ public class DriveMap extends AutoItX {
 		}
 
 		device = StringUtils.isBlank(device) ? "" : device.trim();
-		autoItX.AU3_DriveMapAdd(stringToWString(device),
+		getAutoItX().AU3_DriveMapAdd(stringToWString(device),
 				stringToWString(defaultString(share)), flags,
 				stringToWString(defaultString(user)),
 				stringToWString(defaultString(password)), result, bufSize);
@@ -425,7 +425,8 @@ public class DriveMap extends AutoItX {
 	 *         unsuccessful.
 	 */
 	public static boolean del(final String device) {
-		return autoItX.AU3_DriveMapDel(stringToWString(defaultString(device))) == SUCCESS_RETURN_VALUE;
+		return getAutoItX().AU3_DriveMapDel(
+				stringToWString(defaultString(device))) == SUCCESS_RETURN_VALUE;
 	}
 
 	/**
@@ -457,7 +458,7 @@ public class DriveMap extends AutoItX {
 			bufSize = DRIVE_MAP_ADD_BUF_SIZE;
 		}
 		final CharBuffer mapping = CharBuffer.allocate(bufSize);
-		autoItX.AU3_DriveMapGet(stringToWString(defaultString(device)),
+		getAutoItX().AU3_DriveMapGet(stringToWString(defaultString(device)),
 				mapping, bufSize);
 
 		return hasError() ? null : Native.toString(mapping.array());

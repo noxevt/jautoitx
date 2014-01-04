@@ -653,13 +653,13 @@ public class OptTest extends BaseTest {
 	@Test
 	public void setWinWaitDelay() {
 		try {
-			// delay 5 seconds
-			Assert.assertEquals(Opt.DEFAULT_WIN_WAIT_DELAY,
-					Opt.setWinWaitDelay(3000));
 			final LongHolder time = new LongHolder(0);
 			Thread thread = new Thread(new Runnable() {
 				@Override
 				public void run() {
+					// delay 3 seconds
+					Assert.assertEquals(Opt.DEFAULT_WIN_WAIT_DELAY,
+							Opt.setWinWaitDelay(3000));
 					long start = System.currentTimeMillis();
 					Win.wait(NOTEPAD_TITLE);
 					long end = System.currentTimeMillis();
@@ -676,12 +676,13 @@ public class OptTest extends BaseTest {
 			Assert.assertFalse(thread.isAlive());
 			Win.close(NOTEPAD_TITLE);
 
-			// delay 2 seconds
-			Assert.assertEquals(3000, Opt.setWinWaitDelay(2000));
 			time.value = 0;
 			thread = new Thread(new Runnable() {
 				@Override
 				public void run() {
+					// delay 2 seconds
+					Assert.assertEquals(Opt.DEFAULT_WIN_WAIT_DELAY,
+							Opt.setWinWaitDelay(2000));
 					long start = System.currentTimeMillis();
 					Win.wait(NOTEPAD_TITLE);
 					long end = System.currentTimeMillis();

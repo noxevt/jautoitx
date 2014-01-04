@@ -16,7 +16,7 @@ public class Clip extends AutoItX {
 	public static String get() {
 		final int bufSize = CLIP_GET_BUF_SIZE;
 		final CharBuffer clip = CharBuffer.allocate(bufSize);
-		autoItX.AU3_ClipGet(clip, bufSize);
+		getAutoItX().AU3_ClipGet(clip, bufSize);
 		return hasError() ? null : Native.toString(clip.array());
 	}
 
@@ -29,6 +29,6 @@ public class Clip extends AutoItX {
 	 *            The text to write to the clipboard.
 	 */
 	public static void put(final String clip) {
-		autoItX.AU3_ClipPut(stringToWString(defaultString(clip)));
+		getAutoItX().AU3_ClipPut(stringToWString(defaultString(clip)));
 	}
 }

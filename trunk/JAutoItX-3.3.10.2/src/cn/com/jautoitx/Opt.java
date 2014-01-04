@@ -508,7 +508,8 @@ public final class Opt extends AutoItX {
 	 * @return Returns the value of the previous setting.
 	 */
 	private static int opt(final String option, final int value) {
-		return autoItX.AU3_Opt(stringToWString(defaultString(option)), value);
+		return getAutoItX().AU3_Opt(stringToWString(defaultString(option)),
+				value);
 	}
 
 	/**

@@ -105,36 +105,38 @@ public class AutoItX {
 	private static final String DLL_LIB_RESOURCE_PATH = "/cn/com/jautoitx/lib/";
 
 	protected static final Logger logger = Logger.getAnonymousLogger();
-	protected static AutoItXLibrary autoItX;
 
 	protected static final int SUCCESS_RETURN_VALUE = 1;
 	protected static final int FAILED_RETURN_VALUE = 0;
 	protected static final int TRUE = 1;
 
-	static {
-		// Initialize AutoIt
-		initAutoItX();
-	}
+	private static final ThreadLocal<AutoItXLibrary> threadLocalAutoItX = new ThreadLocal<AutoItXLibrary>() {
+		@Override
+		protected AutoItXLibrary initialValue() {
+			AutoItXLibrary autoItX = null;
 
-	/**
-	 * Initialize AutoItX.
-	 */
-	private static void initAutoItX() {
-		// Initialize AutoItX
-		try {
-			autoItX = loadNativeLibrary();
+			// Initialize AutoItX
+			try {
+				autoItX = loadNativeLibrary();
 
-			logger.info("AutoItX initialized.");
-		} catch (Throwable e) {
-			logger.warning("Unable to initialize "
-					+ AutoItX.class.getSimpleName());
+				logger.info(String.format("%s initialized for thread %s.",
+						AutoItX.class.getSimpleName(), Thread.currentThread()
+								.getName()));
+			} catch (Throwable e) {
+				logger.warning(String.format(
+						"Unable to initialize %s for thread %s.", AutoItX.class
+								.getSimpleName(), Thread.currentThread()
+								.getName()));
+			}
+
+			return autoItX;
 		}
-	}
+	};
 
 	/**
 	 * Unpacking and loading the library into the Java Virtual Machine.
 	 */
-	protected static AutoItXLibrary loadNativeLibrary() {
+	private static AutoItXLibrary loadNativeLibrary() {
 		try {
 			// Get what the system "thinks" the library name should be.
 			String libNativeName = System.mapLibraryName(DLL_LIB_NAME);
@@ -175,12 +177,19 @@ public class AutoItX {
 		}
 	}
 
+	protected static AutoItXLibrary getAutoItX() {
+		return threadLocalAutoItX.get();
+	}
+
 	/**
 	 * Get AutoItX's version.
 	 * 
 	 * @return Returns AutoItX's version.
 	 */
 	public static String version() {
+		if (AUTOITX_VERSION == null) {
+			getAutoItX();
+		}
 		return AUTOITX_VERSION;
 	}
 
@@ -190,7 +199,7 @@ public class AutoItX {
 	 * @return Returns error property.
 	 */
 	public static int error() {
-		return autoItX.AU3_error();
+		return getAutoItX().AU3_error();
 	}
 
 	/**
@@ -266,7 +275,7 @@ public class AutoItX {
 	 */
 	public static void tooltip(final String text, Integer x, Integer y) {
 		if (StringUtils.isEmpty(text)) {
-			autoItX.AU3_ToolTip(stringToWString(""), null, null);
+			getAutoItX().AU3_ToolTip(stringToWString(""), null, null);
 		} else {
 			// Fix AutoItX's bug
 			if ((x != null) && (x < 0)) {
@@ -275,7 +284,8 @@ public class AutoItX {
 			if ((y != null) && (y < 0)) {
 				y = 0;
 			}
-			autoItX.AU3_ToolTip(stringToWString(defaultString(text)), x, y);
+			getAutoItX()
+					.AU3_ToolTip(stringToWString(defaultString(text)), x, y);
 		}
 	}
 
@@ -345,11 +355,6 @@ public class AutoItX {
 	}
 
 	protected static interface AutoItXLibrary extends Library {
-		/**
-		 * Initialize AutoItX.
-		 */
-		public void AU3_Init();
-
 		/**
 		 * Get error property for the last AutoItX method if it will set error
 		 * property.
