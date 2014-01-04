@@ -706,8 +706,8 @@ public final class Mouse extends AutoItX {
 			x = getPosX();
 			y = getPosY();
 		}
-		autoItX.AU3_MouseClick(stringToWString(defaultString(button)
-				.toLowerCase()), x, y,
+		getAutoItX().AU3_MouseClick(
+				stringToWString(defaultString(button).toLowerCase()), x, y,
 				(clicks == null) ? DEFAULT_MOUSE_CLICK_TIMES : clicks,
 				(speed == null) ? DEFAULT_MOUSE_MOVE_SPEED : speed);
 		return !hasError();
@@ -888,8 +888,8 @@ public final class Mouse extends AutoItX {
 			return false;
 		}
 
-		autoItX.AU3_MouseClickDrag(stringToWString(defaultString(button)), x1,
-				y1, x2, y2, speed);
+		getAutoItX().AU3_MouseClickDrag(stringToWString(defaultString(button)),
+				x1, y1, x2, y2, speed);
 		return !hasError();
 	}
 
@@ -925,7 +925,7 @@ public final class Mouse extends AutoItX {
 		int currentMouseClickDownDelay = Opt.currentMouseClickDownDelay;
 
 		long start = System.currentTimeMillis();
-		autoItX.AU3_MouseDown(stringToWString(button));
+		getAutoItX().AU3_MouseDown(stringToWString(button));
 		boolean status = !hasError();
 		long delay = System.currentTimeMillis() - start;
 
@@ -1053,7 +1053,7 @@ public final class Mouse extends AutoItX {
 	 */
 	public static MouseCursor getCursor() {
 		MouseCursor mouseCursor = null;
-		final int cursorId = autoItX.AU3_MouseGetCursor();
+		final int cursorId = getAutoItX().AU3_MouseGetCursor();
 		for (MouseCursor cursor : MouseCursor.values()) {
 			if (cursor.getId() == cursorId) {
 				mouseCursor = cursor;
@@ -1085,7 +1085,7 @@ public final class Mouse extends AutoItX {
 	 * @return Returns the current X position of the mouse cursor.
 	 */
 	public static int getPosX() {
-		return autoItX.AU3_MouseGetPosX();
+		return getAutoItX().AU3_MouseGetPosX();
 	}
 
 	/**
@@ -1097,7 +1097,7 @@ public final class Mouse extends AutoItX {
 	 * @return Returns the current Y position of the mouse cursor.
 	 */
 	public static int getPosY() {
-		return autoItX.AU3_MouseGetPosY();
+		return getAutoItX().AU3_MouseGetPosY();
 	}
 
 	/**
@@ -1131,7 +1131,7 @@ public final class Mouse extends AutoItX {
 	 *         numbers may be negative.
 	 */
 	public static int move(final int x, final int y, final Integer speed) {
-		return autoItX.AU3_MouseMove(x, y, speed);
+		return getAutoItX().AU3_MouseMove(x, y, speed);
 	}
 
 	/**
@@ -1163,7 +1163,7 @@ public final class Mouse extends AutoItX {
 		if (!checkMouseButton(button)) {
 			return false;
 		}
-		autoItX.AU3_MouseUp(stringToWString(button));
+		getAutoItX().AU3_MouseUp(stringToWString(button));
 		return !hasError();
 	}
 
@@ -1226,9 +1226,10 @@ public final class Mouse extends AutoItX {
 			return false;
 		}
 
-		autoItX.AU3_MouseWheel(
-				stringToWString(AutoItX.defaultString(direction.toLowerCase())),
-				(clicks == null) ? 1 : clicks);
+		getAutoItX()
+				.AU3_MouseWheel(
+						stringToWString(defaultString(direction
+								.toLowerCase())), (clicks == null) ? 1 : clicks);
 		return !hasError();
 	}
 

@@ -38,8 +38,28 @@ public class Process extends AutoItX {
 	/* (default) load the user profile */
 	public static final int RUN_LOGON_FLAG_DEFAULT = RUN_LOGON_FLAG_NOT_LOAD_USER_PROFILE;
 
-	/* Used for Process.runAsSet(String, String, String) */
-	private static AutoItXLibrary autoItX2;
+	private static final ThreadLocal<AutoItXLibrary> threadLocalAutoItX2 = new ThreadLocal<AutoItXLibrary>() {
+		@Override
+		protected AutoItXLibrary initialValue() {
+			AutoItXLibrary autoItX = null;
+
+			// Initialize AutoItX
+			try {
+				autoItX = loadNativeLibrary();
+
+				logger.info(String.format("%s initialized for thread %s.",
+						AutoItX.class.getSimpleName(), Thread.currentThread()
+								.getName()));
+			} catch (Throwable e) {
+				logger.warning(String.format(
+						"Unable to initialize %s for thread %s.", AutoItX.class
+								.getSimpleName(), Thread.currentThread()
+								.getName()));
+			}
+
+			return autoItX;
+		}
+	};
 
 	private static boolean runAsDetailsSetted = false;
 
@@ -130,7 +150,7 @@ public class Process extends AutoItX {
 	 *            The title or PID of the process to terminate.
 	 */
 	public static void close(final String process) {
-		autoItX.AU3_ProcessClose(stringToWString(defaultString(process)));
+		getAutoItX().AU3_ProcessClose(stringToWString(defaultString(process)));
 	}
 
 	/**
@@ -166,8 +186,8 @@ public class Process extends AutoItX {
 	 *         process does not exist.
 	 */
 	public static Integer exists(final String process) {
-		int pid = autoItX
-				.AU3_ProcessExists(stringToWString(defaultString(process)));
+		int pid = getAutoItX().AU3_ProcessExists(
+				stringToWString(defaultString(process)));
 		return (pid > 0) ? pid : null;
 	}
 
@@ -328,7 +348,8 @@ public class Process extends AutoItX {
 	 */
 	public static Integer run(final String fileName, final String workingDir,
 			final Integer showFlag) {
-		AutoItXLibrary autoItXLib = runAsDetailsSetted ? autoItX2 : autoItX;
+		AutoItXLibrary autoItXLib = runAsDetailsSetted ? threadLocalAutoItX2
+				.get() : getAutoItX();
 		final int pid = autoItXLib.AU3_Run(
 				stringToWString(defaultString(fileName)),
 				stringToWString(workingDir), (showFlag == null) ? SW_SHOWNORMAL
@@ -353,7 +374,7 @@ public class Process extends AutoItX {
 			return true;
 		}
 
-		return autoItX.AU3_RunAsSet() == SUCCESS_RETURN_VALUE;
+		return getAutoItX().AU3_RunAsSet() == SUCCESS_RETURN_VALUE;
 	}
 
 	/**
@@ -463,10 +484,7 @@ public class Process extends AutoItX {
 			return runAsSet();
 		}
 
-		if (autoItX2 == null) {
-			autoItX2 = loadNativeLibrary();
-		}
-		runAsDetailsSetted = autoItX2.AU3_RunAsSet(
+		runAsDetailsSetted = threadLocalAutoItX2.get().AU3_RunAsSet(
 				stringToWString(defaultString(user)),
 				stringToWString(defaultString(domain)),
 				stringToWString(defaultString(password)), options) == SUCCESS_RETURN_VALUE;
@@ -616,7 +634,8 @@ public class Process extends AutoItX {
 	 */
 	public static RunWaitResult runWait(final String fileName,
 			final String workingDir, final Integer flag) {
-		AutoItXLibrary autoItXLib = runAsDetailsSetted ? autoItX2 : autoItX;
+		AutoItXLibrary autoItXLib = runAsDetailsSetted ? threadLocalAutoItX2
+				.get() : getAutoItX();
 		int exitCode = autoItXLib.AU3_RunWait(
 				stringToWString(defaultString(fileName)),
 				stringToWString(workingDir), (flag == null) ? SW_SHOWNORMAL
@@ -690,7 +709,7 @@ public class Process extends AutoItX {
 	 * @return Return true if success, return false if failed.
 	 */
 	public static boolean setPriority(final String process, final int priority) {
-		return autoItX.AU3_ProcessSetPriority(
+		return getAutoItX().AU3_ProcessSetPriority(
 				stringToWString(defaultString(process)), priority) == SUCCESS_RETURN_VALUE;
 	}
 
@@ -735,7 +754,7 @@ public class Process extends AutoItX {
 	 * @return Return true if success, return false if failed.
 	 */
 	public static boolean shutdown(final int code) {
-		return autoItX.AU3_Shutdown(code) == SUCCESS_RETURN_VALUE;
+		return getAutoItX().AU3_Shutdown(code) == SUCCESS_RETURN_VALUE;
 	}
 
 	/**
@@ -778,8 +797,8 @@ public class Process extends AutoItX {
 	 */
 	public static boolean wait(final String process,
 			final Integer timeoutInSeconds) {
-		return autoItX.AU3_ProcessWait(stringToWString(defaultString(process)),
-				timeoutInSeconds) == SUCCESS_RETURN_VALUE;
+		return getAutoItX().AU3_ProcessWait(
+				stringToWString(defaultString(process)), timeoutInSeconds) == SUCCESS_RETURN_VALUE;
 	}
 
 	/**
@@ -857,7 +876,7 @@ public class Process extends AutoItX {
 	 */
 	public static boolean waitClose(final String process,
 			final Integer timeoutInSeconds) {
-		return autoItX.AU3_ProcessWaitClose(
+		return getAutoItX().AU3_ProcessWaitClose(
 				stringToWString(defaultString(process)), timeoutInSeconds) == SUCCESS_RETURN_VALUE;
 	}
 

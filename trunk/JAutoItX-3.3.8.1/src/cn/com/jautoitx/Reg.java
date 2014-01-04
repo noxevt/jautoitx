@@ -67,8 +67,8 @@ public class Reg extends AutoItX {
 	 *         if error deleting key.
 	 */
 	public static RegDeleteResult deleteKey_(final String keyName) {
-		int result = autoItX
-				.AU3_RegDeleteKey(stringToWString(defaultString(keyName)));
+		int result = getAutoItX().AU3_RegDeleteKey(
+				stringToWString(defaultString(keyName)));
 		RegDeleteResult regDeleteResult = RegDeleteResult.FAILED;
 		if (result == RegDeleteResult.SUCCESS.getValue()) {
 			regDeleteResult = RegDeleteResult.SUCCESS;
@@ -135,7 +135,7 @@ public class Reg extends AutoItX {
 	 */
 	public static RegDeleteResult deleteVal_(final String keyName,
 			final String valueName) {
-		int result = autoItX.AU3_RegDeleteVal(
+		int result = getAutoItX().AU3_RegDeleteVal(
 				stringToWString(defaultString(keyName)),
 				stringToWString(defaultString(valueName)));
 		RegDeleteResult regDeleteResult = RegDeleteResult.FAILED;
@@ -187,7 +187,7 @@ public class Reg extends AutoItX {
 			final int instance) {
 		final int bufSize = REG_ENUM_KEY_BUF_SIZE;
 		final CharBuffer result = CharBuffer.allocate(bufSize);
-		autoItX.AU3_RegEnumKey(stringToWString(defaultString(keyName)),
+		getAutoItX().AU3_RegEnumKey(stringToWString(defaultString(keyName)),
 				instance, result, bufSize);
 
 		RegEnumKeyResult enumKeyResult = null;
@@ -250,7 +250,7 @@ public class Reg extends AutoItX {
 			final int instance) {
 		final int bufSize = REG_ENUM_VAL_BUF_SIZE;
 		final CharBuffer result = CharBuffer.allocate(bufSize);
-		autoItX.AU3_RegEnumVal(stringToWString(defaultString(keyName)),
+		getAutoItX().AU3_RegEnumVal(stringToWString(defaultString(keyName)),
 				instance, result, bufSize);
 
 		RegEnumValResult enumValResult = null;
@@ -350,7 +350,7 @@ public class Reg extends AutoItX {
 		// 1 if unable to open requested key
 		// -1 if unable to open requested value
 		// -2 if value type not supported
-		autoItX.AU3_RegRead(stringToWString(defaultString(keyName)),
+		getAutoItX().AU3_RegRead(stringToWString(defaultString(keyName)),
 				stringToWString(defaultString(valueName)), result, bufSize);
 
 		RegReadResult readResult = null;
@@ -462,7 +462,7 @@ public class Reg extends AutoItX {
 	 */
 	public static boolean write(final String keyName, final String valueName,
 			final RegType type, final String value) {
-		return autoItX.AU3_RegWrite(
+		return getAutoItX().AU3_RegWrite(
 				stringToWString(defaultString(keyName)),
 				stringToWString(defaultString(valueName)),
 				stringToWString(defaultString((type == null) ? null : type
