@@ -72,7 +72,7 @@ public class Pixel extends AutoItX {
 		if ((step == null) || (step <= 0)) {
 			step = DEFAULT_STEP;
 		}
-		return autoItX.AU3_PixelChecksum(left, top, right, bottom, step);
+		return getAutoItX().AU3_PixelChecksum(left, top, right, bottom, step);
 	}
 
 	/**
@@ -86,7 +86,7 @@ public class Pixel extends AutoItX {
 	 *         invalid coordinates.
 	 */
 	public static Integer getColor(int x, int y) {
-		Integer color = autoItX.AU3_PixelGetColor(x, y);
+		Integer color = getAutoItX().AU3_PixelGetColor(x, y);
 		if (color == -1) {
 			color = null;
 		}
@@ -204,7 +204,7 @@ public class Pixel extends AutoItX {
 		// java.lang.Error which says
 		// "Invalid memory access" when Native.isProtected() is true)
 		try {
-			autoItX.AU3_PixelSearch(left, top, right, bottom, color,
+			getAutoItX().AU3_PixelSearch(left, top, right, bottom, color,
 					shadeVariation, step, point);
 			if (!hasError()) {
 				return new int[] { point.x, point.y };

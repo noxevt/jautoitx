@@ -37,7 +37,8 @@ public class Ini extends AutoItX {
 	 */
 	public static boolean delete(final String fileName, final String section,
 			final String key) {
-		return autoItX.AU3_IniDelete(stringToWString(defaultString(fileName)),
+		return getAutoItX().AU3_IniDelete(
+				stringToWString(defaultString(fileName)),
 				stringToWString(defaultString(section)),
 				stringToWString(defaultString(key))) == SUCCESS_RETURN_VALUE;
 	}
@@ -81,7 +82,7 @@ public class Ini extends AutoItX {
 			bufSize = DEFAULT_INI_READ_BUF_SIZE;
 		}
 		final CharBuffer value = CharBuffer.allocate(bufSize);
-		autoItX.AU3_IniRead(stringToWString(defaultString(fileName)),
+		getAutoItX().AU3_IniRead(stringToWString(defaultString(fileName)),
 				stringToWString(defaultString(section)),
 				stringToWString(defaultString(key)),
 				stringToWString(defaultString(defaultValue)), value, bufSize);
@@ -110,7 +111,8 @@ public class Ini extends AutoItX {
 	 */
 	public static boolean write(final String fileName, final String section,
 			final String key, final String value) {
-		return autoItX.AU3_IniWrite(stringToWString(defaultString(fileName)),
+		return getAutoItX().AU3_IniWrite(
+				stringToWString(defaultString(fileName)),
 				stringToWString(defaultString(section)),
 				stringToWString(defaultString(key)),
 				stringToWString(defaultString(value))) == SUCCESS_RETURN_VALUE;

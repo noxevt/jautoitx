@@ -71,7 +71,7 @@ public final class Win extends AutoItX {
 	 * @return Returns true if window is activated, otherwise returns false.
 	 */
 	public static boolean activate(final String title, final String text) {
-		autoItX.AU3_WinActivate(stringToWString(defaultString(title)),
+		getAutoItX().AU3_WinActivate(stringToWString(defaultString(title)),
 				stringToWString(text));
 		return active(title, text);
 	}
@@ -114,8 +114,8 @@ public final class Win extends AutoItX {
 	 * @return Returns true if window is active, otherwise returns false.
 	 */
 	public static boolean active(final String title, final String text) {
-		return autoItX.AU3_WinActive(stringToWString(defaultString(title)),
-				stringToWString(text)) == TRUE;
+		return getAutoItX().AU3_WinActive(
+				stringToWString(defaultString(title)), stringToWString(text)) == TRUE;
 	}
 
 	/**
@@ -160,7 +160,7 @@ public final class Win extends AutoItX {
 	 * @return Returns 1 if success, returns 0 if window is not found.
 	 */
 	public static boolean close(final String title, final String text) {
-		return autoItX.AU3_WinClose(stringToWString(defaultString(title)),
+		return getAutoItX().AU3_WinClose(stringToWString(defaultString(title)),
 				stringToWString(text)) == SUCCESS_RETURN_VALUE;
 	}
 
@@ -203,8 +203,8 @@ public final class Win extends AutoItX {
 	 *         WinExist will return true even if a window is hidden.
 	 */
 	public static boolean exists(final String title, final String text) {
-		return autoItX.AU3_WinExists(stringToWString(defaultString(title)),
-				stringToWString(text)) == TRUE;
+		return getAutoItX().AU3_WinExists(
+				stringToWString(defaultString(title)), stringToWString(text)) == TRUE;
 	}
 
 	/**
@@ -241,7 +241,7 @@ public final class Win extends AutoItX {
 	 *         failed.
 	 */
 	public static Integer getCaretPosX() {
-		int caretPosX = autoItX.AU3_WinGetCaretPosX();
+		int caretPosX = getAutoItX().AU3_WinGetCaretPosX();
 		return hasError() ? null : caretPosX;
 	}
 
@@ -257,7 +257,7 @@ public final class Win extends AutoItX {
 	 *         failed.
 	 */
 	public static Integer getCaretPosY() {
-		int caretPosY = autoItX.AU3_WinGetCaretPosY();
+		int caretPosY = getAutoItX().AU3_WinGetCaretPosY();
 		return hasError() ? null : caretPosY;
 	}
 
@@ -274,9 +274,9 @@ public final class Win extends AutoItX {
 	 */
 	public static int[] getCaretPos() {
 		int[] caretPos = null;
-		Integer caretPosX = autoItX.AU3_WinGetCaretPosX();
+		Integer caretPosX = getAutoItX().AU3_WinGetCaretPosX();
 		if (caretPosX != null) {
-			Integer caretPosY = autoItX.AU3_WinGetCaretPosY();
+			Integer caretPosY = getAutoItX().AU3_WinGetCaretPosY();
 			if (caretPosY != null) {
 				caretPos = new int[] { caretPosX, caretPosY };
 			}
@@ -319,7 +319,7 @@ public final class Win extends AutoItX {
 	public static String getClassList(final String title, final String text) {
 		final int bufSize = WIN_GET_CLASS_LIST_BUF_SIZE;
 		final CharBuffer retText = CharBuffer.allocate(bufSize);
-		autoItX.AU3_WinGetClassList(stringToWString(defaultString(title)),
+		getAutoItX().AU3_WinGetClassList(stringToWString(defaultString(title)),
 				stringToWString(text), retText, bufSize);
 
 		return hasError() ? null : Native.toString(retText.array());
@@ -484,7 +484,7 @@ public final class Win extends AutoItX {
 	public static Integer getClientHeight(final String title, final String text) {
 		Integer clientHeight = null;
 		if (!minimized(title, text)) {
-			clientHeight = autoItX.AU3_WinGetClientSizeHeight(
+			clientHeight = getAutoItX().AU3_WinGetClientSizeHeight(
 					stringToWString(defaultString(title)),
 					stringToWString(text));
 			if (hasError()) {
@@ -618,7 +618,7 @@ public final class Win extends AutoItX {
 	public static Integer getClientWidth(final String title, final String text) {
 		Integer clientWidth = null;
 		if (!minimized(title, text)) {
-			clientWidth = autoItX.AU3_WinGetClientSizeWidth(
+			clientWidth = getAutoItX().AU3_WinGetClientSizeWidth(
 					stringToWString(defaultString(title)),
 					stringToWString(text));
 			if (hasError()) {
@@ -701,7 +701,7 @@ public final class Win extends AutoItX {
 	public static String getHandle(final String title, final String text) {
 		final CharBuffer retText = CharBuffer.allocate(HANDLE_BUF_SIZE);
 
-		autoItX.AU3_WinGetHandle(stringToWString(defaultString(title)),
+		getAutoItX().AU3_WinGetHandle(stringToWString(defaultString(title)),
 				stringToWString(text), retText, HANDLE_BUF_SIZE);
 
 		return hasError() ? null : hwndToHandle(handleToHwnd(Native
@@ -857,7 +857,7 @@ public final class Win extends AutoItX {
 	public static Integer getPosX(final String title, final String text) {
 		Integer posX = null;
 		if (!Win.minimized(title, text)) {
-			posX = autoItX.AU3_WinGetPosX(
+			posX = getAutoItX().AU3_WinGetPosX(
 					stringToWString(defaultString(title)),
 					stringToWString(text));
 			if (hasError()) {
@@ -921,7 +921,7 @@ public final class Win extends AutoItX {
 	public static Integer getPosY(final String title, final String text) {
 		Integer posY = null;
 		if (!Win.minimized(title, text)) {
-			posY = autoItX.AU3_WinGetPosY(
+			posY = getAutoItX().AU3_WinGetPosY(
 					stringToWString(defaultString(title)),
 					stringToWString(text));
 			if (hasError()) {
@@ -983,7 +983,7 @@ public final class Win extends AutoItX {
 	public static Integer getHeight(final String title, final String text) {
 		Integer height = null;
 		if (!Win.minimized(title, text)) {
-			height = autoItX.AU3_WinGetPosHeight(
+			height = getAutoItX().AU3_WinGetPosHeight(
 					stringToWString(defaultString(title)),
 					stringToWString(text));
 			if (hasError()) {
@@ -1045,7 +1045,7 @@ public final class Win extends AutoItX {
 	public static Integer getWidth(final String title, final String text) {
 		Integer width = null;
 		if (!Win.minimized(title, text)) {
-			width = autoItX.AU3_WinGetPosWidth(
+			width = getAutoItX().AU3_WinGetPosWidth(
 					stringToWString(defaultString(title)),
 					stringToWString(text));
 			if (hasError()) {
@@ -1094,7 +1094,7 @@ public final class Win extends AutoItX {
 	 */
 	public static Integer getProcess(final String title, final String text) {
 		final CharBuffer retText = CharBuffer.allocate(INT_BUF_SIZE);
-		autoItX.AU3_WinGetProcess(stringToWString(defaultString(title)),
+		getAutoItX().AU3_WinGetProcess(stringToWString(defaultString(title)),
 				stringToWString(text), retText, INT_BUF_SIZE);
 
 		int pid = NumberUtils.toInt(Native.toString(retText.array()), -1);
@@ -1362,7 +1362,7 @@ public final class Win extends AutoItX {
 	 *         Returns null if the window is not found.
 	 */
 	public static Integer getState(final String title, final String text) {
-		int state = autoItX.AU3_WinGetState(
+		int state = getAutoItX().AU3_WinGetState(
 				stringToWString(defaultString(title)), stringToWString(text));
 		return hasError() ? null : state;
 	}
@@ -1472,7 +1472,7 @@ public final class Win extends AutoItX {
 	 */
 	public static String getText(final String title, final String text) {
 		final CharBuffer retText = CharBuffer.allocate(WIN_GET_TEXT_BUF_SIZE);
-		autoItX.AU3_WinGetText(stringToWString(defaultString(title)),
+		getAutoItX().AU3_WinGetText(stringToWString(defaultString(title)),
 				stringToWString(text), retText, WIN_GET_TEXT_BUF_SIZE);
 
 		return Native.toString(retText.array());
@@ -1529,7 +1529,7 @@ public final class Win extends AutoItX {
 	public static String getTitle(final String title, final String text) {
 		if (Win.exists(title, text)) {
 			CharBuffer retText = CharBuffer.allocate(WIN_GET_TITLE_BUF_SIZE);
-			autoItX.AU3_WinGetTitle(stringToWString(defaultString(title)),
+			getAutoItX().AU3_WinGetTitle(stringToWString(defaultString(title)),
 					stringToWString(text), retText, WIN_GET_TITLE_BUF_SIZE);
 
 			if (!hasError()) {
@@ -1589,7 +1589,7 @@ public final class Win extends AutoItX {
 	 * @return Returns true if success, returns false if window is not found.
 	 */
 	public static boolean kill(final String title, final String text) {
-		return autoItX.AU3_WinKill(stringToWString(defaultString(title)),
+		return getAutoItX().AU3_WinKill(stringToWString(defaultString(title)),
 				stringToWString(text)) == SUCCESS_RETURN_VALUE;
 	}
 
@@ -2139,7 +2139,7 @@ public final class Win extends AutoItX {
 			final String item1, final String item2, final String item3,
 			final String item4, final String item5, final String item6,
 			final String item7, final String item8) {
-		return autoItX.AU3_WinMenuSelectItem(
+		return getAutoItX().AU3_WinMenuSelectItem(
 				stringToWString(defaultString(title)), stringToWString(text),
 				stringToWString(defaultString(item1)),
 				stringToWString(defaultString(item2)),
@@ -2197,7 +2197,7 @@ public final class Win extends AutoItX {
 	 * Minimizes all windows.
 	 */
 	public static void minimizeAll() {
-		autoItX.AU3_WinMinimizeAll();
+		getAutoItX().AU3_WinMinimizeAll();
 	}
 
 	/**
@@ -2206,7 +2206,7 @@ public final class Win extends AutoItX {
 	 * Send("#+m") is a possible alternative.
 	 */
 	public static void minimizeAllUndo() {
-		autoItX.AU3_WinMinimizeAllUndo();
+		getAutoItX().AU3_WinMinimizeAllUndo();
 	}
 
 	/**
@@ -2261,7 +2261,7 @@ public final class Win extends AutoItX {
 	 */
 	public static boolean move(final String title, final String text,
 			final int x, final int y) {
-		return autoItX.AU3_WinMove(stringToWString(defaultString(title)),
+		return getAutoItX().AU3_WinMove(stringToWString(defaultString(title)),
 				stringToWString(text), x, y, null, null) == SUCCESS_RETURN_VALUE;
 	}
 
@@ -2348,7 +2348,7 @@ public final class Win extends AutoItX {
 	 */
 	public static boolean move(final String title, final String text,
 			final int x, final int y, final int width) {
-		return autoItX.AU3_WinMove(stringToWString(defaultString(title)),
+		return getAutoItX().AU3_WinMove(stringToWString(defaultString(title)),
 				stringToWString(text), x, y, width, null) == SUCCESS_RETURN_VALUE;
 	}
 
@@ -2442,7 +2442,7 @@ public final class Win extends AutoItX {
 	 */
 	public static boolean move(final String title, final String text,
 			final int x, final int y, final int width, final int height) {
-		return autoItX.AU3_WinMove(stringToWString(defaultString(title)),
+		return getAutoItX().AU3_WinMove(stringToWString(defaultString(title)),
 				stringToWString(text), x, y, width, height) == SUCCESS_RETURN_VALUE;
 	}
 
@@ -2541,8 +2541,9 @@ public final class Win extends AutoItX {
 	 */
 	public static boolean setOnTop(final String title, final String text,
 			final boolean on) {
-		return autoItX.AU3_WinSetOnTop(stringToWString(defaultString(title)),
-				stringToWString(text), on ? 1 : 0) == SUCCESS_RETURN_VALUE;
+		return getAutoItX().AU3_WinSetOnTop(
+				stringToWString(defaultString(title)), stringToWString(text),
+				on ? 1 : 0) == SUCCESS_RETURN_VALUE;
 	}
 
 	/**
@@ -2899,8 +2900,9 @@ public final class Win extends AutoItX {
 	 */
 	public static boolean setState(final String title, final String text,
 			final int flags) {
-		return autoItX.AU3_WinSetState(stringToWString(defaultString(title)),
-				stringToWString(text), flags) == SUCCESS_RETURN_VALUE;
+		return getAutoItX().AU3_WinSetState(
+				stringToWString(defaultString(title)), stringToWString(text),
+				flags) == SUCCESS_RETURN_VALUE;
 	}
 
 	/**
@@ -2964,10 +2966,9 @@ public final class Win extends AutoItX {
 	 */
 	public static boolean setTitle(final String title, final String text,
 			final String newTitle) {
-		return autoItX
-				.AU3_WinSetTitle(stringToWString(defaultString(title)),
-						stringToWString(text),
-						stringToWString(defaultString(newTitle))) == SUCCESS_RETURN_VALUE;
+		return getAutoItX().AU3_WinSetTitle(
+				stringToWString(defaultString(title)), stringToWString(text),
+				stringToWString(defaultString(newTitle))) == SUCCESS_RETURN_VALUE;
 	}
 
 	/**
@@ -3014,8 +3015,9 @@ public final class Win extends AutoItX {
 	 */
 	public static boolean setTrans(final String title, final String text,
 			final int transparency) {
-		return autoItX.AU3_WinSetTrans(stringToWString(defaultString(title)),
-				stringToWString(text), transparency) != FAILED_RETURN_VALUE;
+		return getAutoItX().AU3_WinSetTrans(
+				stringToWString(defaultString(title)), stringToWString(text),
+				transparency) != FAILED_RETURN_VALUE;
 	}
 
 	/**
@@ -3104,7 +3106,7 @@ public final class Win extends AutoItX {
 	 */
 	public static boolean wait(final String title, final String text,
 			final Integer timeout) {
-		return autoItX.AU3_WinWait(stringToWString(defaultString(title)),
+		return getAutoItX().AU3_WinWait(stringToWString(defaultString(title)),
 				stringToWString(text), timeout) != FAILED_RETURN_VALUE;
 	}
 
@@ -3194,8 +3196,9 @@ public final class Win extends AutoItX {
 	 */
 	public static boolean waitActive(final String title, final String text,
 			final Integer timeout) {
-		return autoItX.AU3_WinWaitActive(stringToWString(defaultString(title)),
-				stringToWString(text), timeout) == SUCCESS_RETURN_VALUE;
+		return getAutoItX().AU3_WinWaitActive(
+				stringToWString(defaultString(title)), stringToWString(text),
+				timeout) == SUCCESS_RETURN_VALUE;
 	}
 
 	/**
@@ -3291,8 +3294,9 @@ public final class Win extends AutoItX {
 	 */
 	public static boolean waitClose(final String title, final String text,
 			final Integer timeout) {
-		return autoItX.AU3_WinWaitClose(stringToWString(defaultString(title)),
-				stringToWString(text), timeout) == SUCCESS_RETURN_VALUE;
+		return getAutoItX().AU3_WinWaitClose(
+				stringToWString(defaultString(title)), stringToWString(text),
+				timeout) == SUCCESS_RETURN_VALUE;
 	}
 
 	/**
@@ -3394,7 +3398,7 @@ public final class Win extends AutoItX {
 	 */
 	public static boolean waitNotActive(final String title, final String text,
 			final Integer timeout) {
-		return autoItX.AU3_WinWaitNotActive(
+		return getAutoItX().AU3_WinWaitNotActive(
 				stringToWString(defaultString(title)), stringToWString(text),
 				timeout) == SUCCESS_RETURN_VALUE;
 	}
