@@ -270,7 +270,7 @@ public class Keyboard extends AutoItX {
 	 */
 	public static void send(final String text, final Integer flag) {
 		if (StringUtils.isNotEmpty(text)) {
-			autoItX.AU3_Send(stringToWString(defaultString(text)), flag);
+			getAutoItX().AU3_Send(stringToWString(defaultString(text)), flag);
 		}
 	}
 

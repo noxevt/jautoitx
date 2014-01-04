@@ -78,7 +78,7 @@ public class Pixel extends AutoItX {
 		rect.top = top;
 		rect.right = right;
 		rect.bottom = bottom;
-		return autoItX.AU3_PixelChecksum(rect, step);
+		return getAutoItX().AU3_PixelChecksum(rect, step);
 	}
 
 	/**
@@ -92,7 +92,7 @@ public class Pixel extends AutoItX {
 	 *         invalid coordinates.
 	 */
 	public static Integer getColor(int x, int y) {
-		Integer color = autoItX.AU3_PixelGetColor(x, y);
+		Integer color = getAutoItX().AU3_PixelGetColor(x, y);
 		if (color == -1) {
 			color = null;
 		}
@@ -210,7 +210,7 @@ public class Pixel extends AutoItX {
 		rect.top = top;
 		rect.right = right;
 		rect.bottom = bottom;
-		autoItX.AU3_PixelSearch(rect, color, shadeVariation, step, point);
+		getAutoItX().AU3_PixelSearch(rect, color, shadeVariation, step, point);
 
 		return hasError() ? null : new int[] { point.x, point.y };
 	}

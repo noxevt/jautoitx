@@ -2938,7 +2938,7 @@ public class TreeView extends AutoItX {
 			bufSize = 1;
 		}
 		final CharBuffer result = CharBuffer.allocate(bufSize);
-		autoItX.AU3_ControlTreeView(stringToWString(defaultString(title)),
+		getAutoItX().AU3_ControlTreeView(stringToWString(defaultString(title)),
 				stringToWString(text), stringToWString(defaultString(control)),
 				stringToWString(defaultString(command)),
 				stringToWString(defaultString(extra1)),

@@ -1236,7 +1236,7 @@ public final class ListView extends AutoItX {
 			bufSize = 1;
 		}
 		final CharBuffer result = CharBuffer.allocate(bufSize);
-		autoItX.AU3_ControlListView(stringToWString(defaultString(title)),
+		getAutoItX().AU3_ControlListView(stringToWString(defaultString(title)),
 				stringToWString(text), stringToWString(defaultString(control)),
 				stringToWString(defaultString(command)),
 				stringToWString(defaultString(extra1)),
